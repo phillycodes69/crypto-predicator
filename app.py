@@ -199,10 +199,11 @@ if st.button("Predict Tomorrow's Price"):
             filename = f"{coin}_history.csv"
             save_data_to_csv(data, filename)
             predicted_prices = predict_price_from_csv(filename)
+            st.write("DEBUG >>> predicted_prices[0]:", predicted_prices[0])
+
             st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
             full_data = load_data_for_graph(filename)
             plot_prediction(full_data, predicted_prices)
-
             # ✅ Economic news section
             st.markdown("## 🌍 Economic News That Could Affect Crypto")
             try:
