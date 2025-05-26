@@ -148,6 +148,8 @@ if st.button("Predict Tomorrow's Price"):
             st.success(f"Predicted price for tomorrow: ${price:,.2f}")
 
             plot_prediction(full_data, predicted_prices)
+     except Exception as e:
+            st.error(f"❌ Error: {e}")  # ✅ CLOSE the main try here
 st.markdown("## 🌍 Economic News That Could Affect Crypto")
 try:
     news = get_economic_news()
