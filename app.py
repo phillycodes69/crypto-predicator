@@ -106,7 +106,7 @@ def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
     prices = [row["price"] for row in data]
 
-    # Add predicted dates and prices
+    # Extend with predicted dates and prices
     last_date = datetime.datetime.strptime(dates[-1], "%Y-%m-%d")
     for i, price in enumerate(predictions):
         next_date = (last_date + datetime.timedelta(days=i + 1)).strftime("%Y-%m-%d")
@@ -116,13 +116,13 @@ def plot_prediction(data, predictions):
     # Split data
     historical_dates = dates[:len(data)]
     historical_prices = prices[:len(data)]
-
     future_dates = dates[len(data):]
     future_prices = prices[len(data):]
 
-    # Create Plotly figure
+    # Create figure
     fig = go.Figure()
 
+    # Historical trace
     fig.add_trace(go.Scatter(
         x=historical_dates,
         y=historical_prices,
@@ -131,6 +131,7 @@ def plot_prediction(data, predictions):
         line=dict(color="blue")
     ))
 
+    # Prediction trace
     fig.add_trace(go.Scatter(
         x=future_dates,
         y=future_prices,
@@ -139,14 +140,29 @@ def plot_prediction(data, predictions):
         line=dict(color="red", dash="dash")
     ))
 
+    # Add shaded background behind prediction
+    if future_dates:
+        fig.add_vrect(
+            x0=future_dates[0],
+            x1=future_dates[-1],
+            fillcolor="rgba(255, 0, 0, 0.05)",
+            layer="below",
+            line_width=0,
+            annotation_text="Prediction Zone",
+            annotation_position="top left"
+        )
+
+    # Final layout
     fig.update_layout(
-        title="Crypto Price Prediction",
+        title="Crypto Price Forecast",
         xaxis_title="Date",
         yaxis_title="Price (USD)",
-        hovermode="x unified"
+        hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
 
     st.plotly_chart(fig, use_container_width=True)
+
 
 
 
