@@ -1,5 +1,19 @@
 import streamlit as st
 import requests
+
+NEWS_API_KEY = "your_api_key_here"  # Replace this with your real NewsAPI key
+
+def get_economic_news():
+    url = "https://newsapi.org/v2/top-headlines"
+    params = {
+        "category": "business",
+        "language": "en",
+        "pageSize": 5,
+        "apiKey": NEWS_API_KEY
+    }
+    response = requests.get(url, params=params)
+    return response.json().get("articles", [])
+
 import datetime
 import csv
 import os
@@ -130,6 +144,19 @@ if st.button("🚀 Predict Tomorrow's Price"):
         st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_prices[0][1]:,.2f}")
         full_data = load_data_for_graph(filename)
         plot_prediction(full_data, predicted_prices)
+    
+         # 🔹 News Section Here
+        st.markdown("## 🌍 Economic News That Could Affect Crypto")
+
+        try:
+            news = get_economic_news()
+            for article in news:
+                st.markdown(f"**[{article['title']}]({article['url']})**")
+                st.caption(f"*Source: {article['source']['name']}*")
+                st.markdown("---")
+        except Exception as e:
+            st.warning("⚠️ Could not load news articles.")
+    
     except Exception as e:
         st.error(f"❌ Something went wrong:\n\n{e}")
 
