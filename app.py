@@ -100,36 +100,54 @@ def load_data_for_graph(filename):
             full_data.append({"date": row["date"], "price": float(row["price"])})
     return full_data
 
-def plot_prediction(data, predictions):
-    import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
+def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
     prices = [row["price"] for row in data]
 
     # Add predicted dates and prices
     last_date = datetime.datetime.strptime(dates[-1], "%Y-%m-%d")
     for i, price in enumerate(predictions):
-        next_date = (last_date + datetime.timedelta(days=i+1)).strftime("%Y-%m-%d")
+        next_date = (last_date + datetime.timedelta(days=i + 1)).strftime("%Y-%m-%d")
         dates.append(next_date)
         prices.append(price)
 
-    # Reduce tick labels if more than 40 dates
-    show_every = max(len(dates) // 20, 1)
-    xticks = [date if i % show_every == 0 else "" for i, date in enumerate(dates)]
+    # Split data
+    historical_dates = dates[:len(data)]
+    historical_prices = prices[:len(data)]
 
-    # Plot
-    plt.figure(figsize=(12, 6))
-    plt.plot(dates[:len(data)], prices[:len(data)], label="Historical", marker='o')
-    plt.plot(dates[len(data):], prices[len(data):], label="Predicted", linestyle='--', marker='x', color='red')
-    plt.title("Crypto Price with Prediction")
-    plt.xlabel("Date")
-    plt.ylabel("Price (USD)")
-    plt.xticks(ticks=range(len(xticks)), labels=xticks, rotation=45)
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
+    future_dates = dates[len(data):]
+    future_prices = prices[len(data):]
 
-    st.pyplot(plt.gcf())
+    # Create Plotly figure
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=historical_dates,
+        y=historical_prices,
+        mode="lines+markers",
+        name="Historical",
+        line=dict(color="blue")
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=future_dates,
+        y=future_prices,
+        mode="lines+markers",
+        name="Predicted",
+        line=dict(color="red", dash="dash")
+    ))
+
+    fig.update_layout(
+        title="Crypto Price Prediction",
+        xaxis_title="Date",
+        yaxis_title="Price (USD)",
+        hovermode="x unified"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
 
 
 
