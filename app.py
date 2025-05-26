@@ -3,6 +3,7 @@ import requests
 
 NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"  # Replace this with your real NewsAPI key
 
+@st.cache_data(ttl=600)
 def get_economic_news():
     url = "https://newsapi.org/v2/top-headlines"
     params = {
@@ -22,6 +23,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
+st.set_page_config(
+    page_title="Crypto Price Predictor",
+    page_icon="📈",
+    layout="wide"
+)
+@st.cache_data(ttl=600)
 def get_crypto_price(coin_id="bitcoin"):
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
     params = {"vs_currency": "usd", "days": "365", "interval": "daily"}
@@ -127,23 +134,24 @@ def plot_prediction(data, predictions):
 
 
 st.markdown("# 🪙 Crypto Price Predictor")
-st.markdown("#### Select a coin below to get a 1-day price prediction:")
+st.markdown("#### Predict the next 7 days of major coins and see live economic news.")
+st.markdown("---")
 
 coin = st.selectbox("🔍 Choose a coin", ["bitcoin", "ethereum", "dogecoin", "cardano"])
 
 st.markdown("---")  # Horizontal line to separate sections
 
 if st.button("🚀 Predict Tomorrow's Price"):
-
-    try:
-        st.info(f"Fetching data for {coin}...")
-        data = get_crypto_price(coin)
-        filename = f"{coin}_history.csv"
-        save_data_to_csv(data, filename)
-        predicted_prices = predict_price_from_csv(filename)
-        st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_prices[0][1]:,.2f}")
-        full_data = load_data_for_graph(filename)
-        plot_prediction(full_data, predicted_prices)
+    with st.spinner("⏳ Please wait..."):
+        try:
+            st.info(f"Fetching data for {coin}...")
+            data = get_crypto_price(coin)
+            filename = f"{coin}_history.csv"
+            save_data_to_csv(data, filename)
+            predicted_prices = predict_price_from_csv(filename)
+            st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_prices[0][1]:,.2f}")
+            full_data = load_data_for_graph(filename)
+            plot_prediction(full_data, predicted_prices)
     
          # 🔹 News Section Here
         st.markdown("## 🌍 Economic News That Could Affect Crypto")
