@@ -137,7 +137,16 @@ st.markdown("# 🪙 Crypto Price Predictor")
 st.markdown("#### Predict the next 7 days of major coins and see live economic news.")
 st.markdown("---")
 
-coin = st.selectbox("🔍 Choose a coin", ["bitcoin", "ethereum", "dogecoin", "cardano"])
+coin_names = {
+    "Bitcoin": "bitcoin",
+    "Ethereum": "ethereum",
+    "Dogecoin": "dogecoin",
+    "Cardano": "cardano"
+}
+
+selected_name = st.selectbox("Choose a coin", list(coin_names.keys()))
+coin = coin_names[selected_name]  # CoinGecko-compatible ID
+
 
 st.markdown("---")  # Horizontal line to separate sections
 if st.button("Predict Tomorrow's Price"):
