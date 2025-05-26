@@ -116,7 +116,7 @@ if st.button("🚀 Predict Tomorrow's Price"):
         filename = f"{coin}_history.csv"
         save_data_to_csv(data, filename)
         predicted_prices = predict_price_from_csv(filename)
-        st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_prices[0]:,.2f}")
+        st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_prices[0][1]:,.2f}")
         full_data = load_data_for_graph(filename)
         plot_prediction(full_data, predicted_prices)
     except Exception as e:
