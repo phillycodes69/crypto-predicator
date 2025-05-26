@@ -12,6 +12,9 @@ st.set_page_config(
     page_icon="📈",
     layout="wide"
 )
+st.markdown("# 📊 Crypto Price Predictor")
+st.markdown("### Predict the next 7 days of major coins and see live economic news.")
+st.markdown("---")
 
 # CoinGecko-compatible coin IDs
 coin_names = {
@@ -145,6 +148,19 @@ if st.button("Predict Tomorrow's Price"):
             st.success(f"Predicted price for tomorrow: ${price:,.2f}")
 
             plot_prediction(full_data, predicted_prices)
+st.markdown("## 🌍 Economic News That Could Affect Crypto")
+
+try:
+    news = get_economic_news()
+    if not news:
+        st.info("No news articles found.")
+    else:
+        for article in news:
+            st.markdown(f"**[{article['title']}]({article['url']})**")
+            st.caption(f"*Source: {article['source']['name']}*")
+            st.markdown("---")
+except Exception as e:
+    st.warning("⚠️ Could not load news articles.")
 
             st.markdown("## 🌍 Economic News That Could Affect Crypto")
             try:
