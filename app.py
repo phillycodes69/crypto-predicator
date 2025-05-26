@@ -175,9 +175,6 @@ def plot_prediction(data, predictions):
     st.plotly_chart(fig, use_container_width=True)
 
 
-
-
-
 st.markdown("# 🪙 Crypto Price Predictor")
 st.markdown("#### Predict the next 7 days of major coins and see live economic news.")
 st.markdown("---")
