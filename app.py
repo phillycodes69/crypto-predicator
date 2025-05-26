@@ -80,26 +80,37 @@ def load_data_for_graph(filename):
     return full_data
 
 def plot_prediction(data, predictions):
+    import matplotlib.pyplot as plt
+
     dates = [row["date"] for row in data]
     prices = [row["price"] for row in data]
 
+    # Add predicted dates and prices
     last_date = datetime.datetime.strptime(dates[-1], "%Y-%m-%d")
     for i, price in enumerate(predictions):
         next_date = (last_date + datetime.timedelta(days=i+1)).strftime("%Y-%m-%d")
         dates.append(next_date)
         prices.append(price)
 
+    # Reduce tick labels if more than 40 dates
+    show_every = max(len(dates) // 20, 1)
+    xticks = [date if i % show_every == 0 else "" for i, date in enumerate(dates)]
+
+    # Plot
     plt.figure(figsize=(12, 6))
     plt.plot(dates[:len(data)], prices[:len(data)], label="Historical", marker='o')
     plt.plot(dates[len(data):], prices[len(data):], label="Predicted", linestyle='--', marker='x', color='red')
-    plt.title("Crypto Price with 7-Day Prediction")
+    plt.title("Crypto Price with Prediction")
     plt.xlabel("Date")
     plt.ylabel("Price (USD)")
-    plt.xticks(rotation=45)
+    plt.xticks(ticks=range(len(xticks)), labels=xticks, rotation=45)
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.show()
+
+    st.pyplot(plt.gcf())
+
+
 
 st.markdown("# 🪙 Crypto Price Predictor")
 st.markdown("#### Select a coin below to get a 1-day price prediction:")
