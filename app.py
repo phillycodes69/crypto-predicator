@@ -140,19 +140,19 @@ st.markdown("---")
 coin = st.selectbox("🔍 Choose a coin", ["bitcoin", "ethereum", "dogecoin", "cardano"])
 
 st.markdown("---")  # Horizontal line to separate sections
-if st.button("🚀 Predict Tomorrow's Price"):
-    with st.spinner("⏳ Please wait..."):
+if st.button("Predict Tomorrow's Price"):
+    with st.spinner("🔄 Fetching data and generating prediction..."):
         try:
-              st.info(f"Fetching data for {coin}...")
-              data = get_crypto_price(coin)
-              filename = f"{coin}_history.csv"
-              save_data_to_csv(data, filename)
-              predicted_prices = predict_price_from_csv(filename)
-              st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_prices[0][1]:,.2f}")
-              full_data = load_data_for_graph(filename)
-              plot_prediction(full_data, predicted_prices)
-    
-             # 🔹 News Section Here
+            st.info("Fetching data...")
+            data = get_crypto_price(coin)
+            filename = f"{coin}_history.csv"
+            save_data_to_csv(data, filename)
+            predicted_prices = predict_price_from_csv(filename)
+            st.success(f"Predicted price for tomorrow: ${predicted_prices[0]:,.2f}")
+            full_data = load_data_for_graph(filename)
+            plot_prediction(full_data, predicted_prices)
+
+            # ✅ Economic news section
             st.markdown("## 🌍 Economic News That Could Affect Crypto")
             try:
                 news = get_economic_news()
@@ -162,7 +162,8 @@ if st.button("🚀 Predict Tomorrow's Price"):
                     st.markdown("---")
             except Exception as e:
                 st.warning("⚠️ Could not load news articles.")
-    
+
         except Exception as e:
-            st.error(f"❌ Something went wrong:\n\n{e}")
+            st.error(f"❌ Error: {e}")
+
 
