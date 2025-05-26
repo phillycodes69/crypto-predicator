@@ -100,6 +100,7 @@ def load_data_for_graph(filename):
             full_data.append({"date": row["date"], "price": float(row["price"])})
     return full_data
 
+
 import plotly.graph_objects as go
 
 def plot_prediction(data, predictions):
@@ -119,7 +120,6 @@ def plot_prediction(data, predictions):
     future_dates = dates[len(data):]
     future_prices = prices[len(data):]
 
-    # Create figure
     fig = go.Figure()
 
     # Historical trace
@@ -140,8 +140,20 @@ def plot_prediction(data, predictions):
         line=dict(color="red", dash="dash")
     ))
 
-    # Add shaded background behind prediction
+    # 🔵 Highlight the first predicted point
     if future_dates:
+        fig.add_trace(go.Scatter(
+            x=[future_dates[0]],
+            y=[future_prices[0]],
+            mode="markers+text",
+            name="Next Prediction",
+            marker=dict(color="darkred", size=12, symbol="star"),
+            text=[f"${future_prices[0]:,.2f}"],
+            textposition="top center",
+            showlegend=True
+        ))
+
+        # Optional: shaded area for prediction range
         fig.add_vrect(
             x0=future_dates[0],
             x1=future_dates[-1],
@@ -152,7 +164,6 @@ def plot_prediction(data, predictions):
             annotation_position="top left"
         )
 
-    # Final layout
     fig.update_layout(
         title="Crypto Price Forecast",
         xaxis_title="Date",
