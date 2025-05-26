@@ -12,7 +12,15 @@ def get_crypto_price(coin_id="bitcoin"):
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
     params = {"vs_currency": "usd", "days": "7", "interval": "daily"}
     response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        raise ValueError(f"Error fetching data for '{coin_id}'. Check the coin name.")
+
     data = response.json()
+
+    if 'prices' not in data:
+        raise ValueError(f"API response for '{coin_id}' did not contain price data.")
+
     formatted_data = []
     for i in range(len(data['prices'])):
         timestamp = data['prices'][i][0] / 1000
@@ -85,11 +93,15 @@ st.title("📈 Crypto Price Predictor")
 coin = st.selectbox("Choose a cryptocurrency", ["bitcoin", "ethereum", "dogecoin", "cardano"])
 
 if st.button("Predict Tomorrow's Price"):
-    st.info(f"Fetching data for {coin}...")
-    data = get_crypto_price(coin)
-    filename = f"{coin}_history.csv"
-    save_data_to_csv(data, filename)
-    predicted_price = predict_price_from_csv(filename)
-    st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_price:,.2f}")
-    full_data = load_data_for_graph(filename)
-    plot_prediction(full_data, predicted_price)
+    try:
+        st.info(f"Fetching data for {coin}...")
+        data = get_crypto_price(coin)
+        filename = f"{coin}_history.csv"
+        save_data_to_csv(data, filename)
+        predicted_price = predict_price_from_csv(filename)
+        st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_price:,.2f}")
+        full_data = load_data_for_graph(filename)
+        plot_prediction(full_data, predicted_price)
+    except Exception as e:
+        st.error(f"❌ Something went wrong:\n\n{e}")
+
