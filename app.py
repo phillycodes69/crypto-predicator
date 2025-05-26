@@ -1,7 +1,31 @@
 import streamlit as st
 import requests
+import pandas as pd
+import numpy as np
+import datetime
+import plotly.graph_objects as go
+from sklearn.linear_model import LinearRegression
 
-NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"  # Replace this with your real NewsAPI key
+# Page setup
+st.set_page_config(
+    page_title="Crypto Price Predictor",
+    page_icon="📈",
+    layout="wide"
+)
+
+# CoinGecko-compatible coin IDs
+coin_names = {
+    "Bitcoin": "bitcoin",
+    "Ethereum": "ethereum",
+    "Dogecoin": "dogecoin",
+    "Cardano": "cardano"
+}
+
+selected_name = st.selectbox("Choose a coin", list(coin_names.keys()))
+coin = coin_names[selected_name]
+
+# News API
+NEWS_API_KEY = "your_newsapi_key_here"
 
 @st.cache_data(ttl=600)
 def get_economic_news():
@@ -15,132 +39,67 @@ def get_economic_news():
     response = requests.get(url, params=params)
     return response.json().get("articles", [])
 
-import datetime
-import csv
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-
-st.set_page_config(
-    page_title="Crypto Price Predictor",
-    page_icon="📈",
-    layout="wide"
-)
 @st.cache_data(ttl=600)
-def get_crypto_price(coin_id="bitcoin"):
+def get_crypto_price(coin_id):
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params = {"vs_currency": "usd", "days": "365", "interval": "daily"}
+    params = {"vs_currency": "usd", "days": "90", "interval": "daily"}
     response = requests.get(url, params=params)
-
-    if response.status_code != 200:
-        raise ValueError(f"Error fetching data for '{coin_id}'. Check the coin name.")
-
     data = response.json()
 
-    if 'prices' not in data:
-        raise ValueError(f"API response for '{coin_id}' did not contain price data.")
-
-    formatted_data = []
-    for i in range(len(data['prices'])):
-        timestamp = data['prices'][i][0] / 1000
-        date = datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
-        price = data['prices'][i][1]
-        volume = data['total_volumes'][i][1]
-        formatted_data.append({"date": date, "price": price, "volume": volume})
-    return formatted_data
+    price_data = []
+    for entry in data["prices"]:
+        date = datetime.datetime.fromtimestamp(entry[0] / 1000).strftime("%Y-%m-%d")
+        price = entry[1]
+        price_data.append({"date": date, "price": price})
+    return price_data
 
 def save_data_to_csv(data, filename):
-    file_exists = os.path.isfile(filename)
-    with open(filename, mode='a', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=["date", "price", "volume"])
-        if not file_exists:
-            writer.writeheader()
-        for row in data:
-            if not row_exists(row["date"], filename):
-                writer.writerow(row)
+    df = pd.DataFrame(data)
+    df.to_csv(filename, index=False)
 
-def row_exists(date, filename):
-    if not os.path.isfile(filename):
-        return False
-    with open(filename, mode='r') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row["date"] == date:
-                return True
-    return False
+def load_data_for_graph(filename):
+    df = pd.read_csv(filename)
+    return df.to_dict(orient="records")
 
 def predict_price_from_csv(filename):
     df = pd.read_csv(filename)
-    df["date_obj"] = pd.to_datetime(df["date"])
-    df["days"] = (df["date_obj"] - df["date_obj"].min()).dt.days
-    X = df[["days", "volume"]].values
+    df["date"] = pd.to_datetime(df["date"])
+    df["day"] = (df["date"] - df["date"].min()).dt.days
+
+    X = df[["day"]].values
     y = df["price"].values
-    
+
     model = LinearRegression()
     model.fit(X, y)
-    
-    future_predictions[0][1] = []
-    last_day = df["days"].max()
-    last_volume = df["volume"].iloc[-1]  # Use current volume for simplicity
 
-    for i in range(1, 8):  # 7 future days
+    future_predictions = []
+    last_day = df["day"].max()
+    for i in range(1, 8):
         future_day = last_day + i
-        predicted_prices[0][1]= model.predict([[future_day, last_volume]])
-        future_predictions.append((future_day, predicted_price[0]))
+        predicted_price = model.predict(np.array([[future_day]]))
+        future_predictions.append((i, predicted_price[0]))
 
     return future_predictions
-
-def load_data_for_graph(filename):
-    full_data = []
-    with open(filename, newline='') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            full_data.append({"date": row["date"], "price": float(row["price"])})
-    return full_data
-
-
-import plotly.graph_objects as go
 
 def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
     prices = [row["price"] for row in data]
 
-    # Extend with predicted dates and prices
     last_date = datetime.datetime.strptime(dates[-1], "%Y-%m-%d")
-    for i, price in enumerate(predictions):
-        next_date = (last_date + datetime.timedelta(days=i + 1)).strftime("%Y-%m-%d")
+    for i, price in predictions:
+        next_date = (last_date + datetime.timedelta(days=i)).strftime("%Y-%m-%d")
         dates.append(next_date)
         prices.append(price)
 
-    # Split data
     historical_dates = dates[:len(data)]
     historical_prices = prices[:len(data)]
     future_dates = dates[len(data):]
     future_prices = prices[len(data):]
 
     fig = go.Figure()
+    fig.add_trace(go.Scatter(x=historical_dates, y=historical_prices, mode="lines+markers", name="Historical", line=dict(color="blue")))
+    fig.add_trace(go.Scatter(x=future_dates, y=future_prices, mode="lines+markers", name="Predicted", line=dict(color="red", dash="dash")))
 
-    # Historical trace
-    fig.add_trace(go.Scatter(
-        x=historical_dates,
-        y=historical_prices,
-        mode="lines+markers",
-        name="Historical",
-        line=dict(color="blue")
-    ))
-
-    # Prediction trace
-    fig.add_trace(go.Scatter(
-        x=future_dates,
-        y=future_prices,
-        mode="lines+markers",
-        name="Predicted",
-        line=dict(color="red", dash="dash")
-    ))
-
-    # 🔵 Highlight the first predicted point
     if future_dates:
         fig.add_trace(go.Scatter(
             x=[future_dates[0]],
@@ -149,11 +108,9 @@ def plot_prediction(data, predictions):
             name="Next Prediction",
             marker=dict(color="darkred", size=12, symbol="star"),
             text=[f"${future_prices[0]:,.2f}"],
-            textposition="top center",
-            showlegend=True
+            textposition="top center"
         ))
 
-        # Optional: shaded area for prediction range
         fig.add_vrect(
             x0=future_dates[0],
             x1=future_dates[-1],
@@ -174,36 +131,21 @@ def plot_prediction(data, predictions):
 
     st.plotly_chart(fig, use_container_width=True)
 
-
-st.markdown("# 🪙 Crypto Price Predictor")
-st.markdown("#### Predict the next 7 days of major coins and see live economic news.")
-st.markdown("---")
-
-coin_names = {
-    "Bitcoin": "bitcoin",
-    "Ethereum": "ethereum",
-    "Dogecoin": "dogecoin",
-    "Cardano": "cardano"
-}
-
-selected_name = st.selectbox("Choose a coin", list(coin_names.keys()))
-coin = coin_names[selected_name]  # CoinGecko-compatible ID
-
-
-st.markdown("---")  # Horizontal line to separate sections
+# === Main app logic ===
 if st.button("Predict Tomorrow's Price"):
     with st.spinner("🔄 Fetching data and generating prediction..."):
         try:
-            st.info("Fetching data...")
             data = get_crypto_price(coin)
             filename = f"{coin}_history.csv"
             save_data_to_csv(data, filename)
-            predicted_prices[0][1] = predict_price_from_csv(filename)
-            days, predicated_price = predicted_prices[0][1]
-            st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
+            predicted_prices = predict_price_from_csv(filename)
             full_data = load_data_for_graph(filename)
+
+            day, price = predicted_prices[0]
+            st.success(f"Predicted price for tomorrow: ${price:,.2f}")
+
             plot_prediction(full_data, predicted_prices)
-            # ✅ Economic news section
+
             st.markdown("## 🌍 Economic News That Could Affect Crypto")
             try:
                 news = get_economic_news()
@@ -216,5 +158,3 @@ if st.button("Predict Tomorrow's Price"):
 
         except Exception as e:
             st.error(f"❌ Error: {e}")
-
-
