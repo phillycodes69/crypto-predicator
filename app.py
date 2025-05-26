@@ -56,18 +56,20 @@ def predict_price_from_csv(filename):
     df["days"] = (df["date_obj"] - df["date_obj"].min()).dt.days
     X = df[["days", "volume"]].values
     y = df["price"].values
+    
     model = LinearRegression()
     model.fit(X, y)
+    
     future_predictions = []
     last_day = df["days"].max()
     last_volume = df["volume"].iloc[-1]  # Use current volume for simplicity
 
-for i in range(1, 8):  # 7 future days
-    future_day = last_day + i
-    predicted_price = model.predict([[future_day, last_volume]])
-    future_predictions.append((future_day, predicted_price[0]))
+    for i in range(1, 8):  # 7 future days
+        future_day = last_day + i
+        predicted_price = model.predict([[future_day, last_volume]])
+        future_predictions.append((future_day, predicted_price[0]))
 
-return future_predictions
+    return future_predictions
 
 def load_data_for_graph(filename):
     full_data = []
