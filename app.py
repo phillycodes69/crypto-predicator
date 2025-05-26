@@ -81,13 +81,13 @@ def predict_price_from_csv(filename):
     model = LinearRegression()
     model.fit(X, y)
     
-    future_predictions = []
+    future_predictions[0][1] = []
     last_day = df["days"].max()
     last_volume = df["volume"].iloc[-1]  # Use current volume for simplicity
 
     for i in range(1, 8):  # 7 future days
         future_day = last_day + i
-        predicted_price = model.predict([[future_day, last_volume]])
+        predicted_price[0][1] = model.predict([[future_day, last_volume]])
         future_predictions.append((future_day, predicted_price[0]))
 
     return future_predictions
@@ -198,8 +198,8 @@ if st.button("Predict Tomorrow's Price"):
             data = get_crypto_price(coin)
             filename = f"{coin}_history.csv"
             save_data_to_csv(data, filename)
-            predicted_prices = predict_price_from_csv(filename)
-            days, predicated_price = predicted_prices[0]
+            predicted_prices[0][1] = predict_price_from_csv(filename)
+            days, predicated_price = predicted_prices[0][1]
             st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
             full_data = load_data_for_graph(filename)
             plot_prediction(full_data, predicted_prices)
