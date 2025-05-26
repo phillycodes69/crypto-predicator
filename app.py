@@ -10,7 +10,7 @@ from sklearn.linear_model import LinearRegression
 
 def get_crypto_price(coin_id="bitcoin"):
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params = {"vs_currency": "usd", "days": "7", "interval": "daily"}
+    params = {"vs_currency": "usd", "days": "365", "interval": "daily"}
     response = requests.get(url, params=params)
 
     if response.status_code != 200:
@@ -58,10 +58,16 @@ def predict_price_from_csv(filename):
     y = df["price"].values
     model = LinearRegression()
     model.fit(X, y)
-    next_day = df["days"].max() + 1
-    next_volume = df["volume"].iloc[-1]
-    prediction = model.predict([[next_day, next_volume]])
-    return prediction[0]
+    future_predictions = []
+    last_day = df["days"].max()
+    last_volume = df["volume"].iloc[-1]  # Use current volume for simplicity
+
+for i in range(1, 8):  # 7 future days
+    future_day = last_day + i
+    predicted_price = model.predict([[future_day, last_volume]])
+    future_predictions.append((future_day, predicted_price[0]))
+
+return future_predictions
 
 def load_data_for_graph(filename):
     full_data = []
@@ -71,37 +77,46 @@ def load_data_for_graph(filename):
             full_data.append({"date": row["date"], "price": float(row["price"])})
     return full_data
 
-def plot_prediction(data, predicted_price):
+def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
     prices = [row["price"] for row in data]
+
     last_date = datetime.datetime.strptime(dates[-1], "%Y-%m-%d")
-    next_date = (last_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-    dates.append(next_date)
-    prices.append(predicted_price)
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(dates[:-1], prices[:-1], label="Historical Prices", marker='o')
-    ax.plot(dates[-2:], prices[-2:], label="Predicted Price", marker='x', linestyle='--', color='red')
-    ax.set_title("Crypto Price and Prediction")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Price (USD)")
+    for i, price in enumerate(predictions):
+        next_date = (last_date + datetime.timedelta(days=i+1)).strftime("%Y-%m-%d")
+        dates.append(next_date)
+        prices.append(price)
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(dates[:len(data)], prices[:len(data)], label="Historical", marker='o')
+    plt.plot(dates[len(data):], prices[len(data):], label="Predicted", linestyle='--', marker='x', color='red')
+    plt.title("Crypto Price with 7-Day Prediction")
+    plt.xlabel("Date")
+    plt.ylabel("Price (USD)")
     plt.xticks(rotation=45)
-    ax.legend()
-    ax.grid(True)
-    st.pyplot(fig)
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
-st.title("📈 Crypto Price Predictor")
-coin = st.selectbox("Choose a cryptocurrency", ["bitcoin", "ethereum", "dogecoin", "cardano"])
+st.markdown("# 🪙 Crypto Price Predictor")
+st.markdown("#### Select a coin below to get a 1-day price prediction:")
 
-if st.button("Predict Tomorrow's Price"):
+coin = st.selectbox("🔍 Choose a coin", ["bitcoin", "ethereum", "dogecoin", "cardano"])
+
+st.markdown("---")  # Horizontal line to separate sections
+
+if st.button("🚀 Predict Tomorrow's Price"):
+
     try:
         st.info(f"Fetching data for {coin}...")
         data = get_crypto_price(coin)
         filename = f"{coin}_history.csv"
         save_data_to_csv(data, filename)
-        predicted_price = predict_price_from_csv(filename)
+        predicted_prices = predict_price_from_csv(filename)
         st.success(f"Predicted {coin.upper()} price for tomorrow: ${predicted_price:,.2f}")
         full_data = load_data_for_graph(filename)
-        plot_prediction(full_data, predicted_price)
+        plot_prediction(full_data, predicted_prices)
     except Exception as e:
         st.error(f"❌ Something went wrong:\n\n{e}")
 
