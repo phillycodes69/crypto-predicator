@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-NEWS_API_KEY = "your_api_key_here"  # Replace this with your real NewsAPI key
+NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"  # Replace this with your real NewsAPI key
 
 def get_economic_news():
     url = "https://newsapi.org/v2/top-headlines"
