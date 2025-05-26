@@ -87,7 +87,7 @@ def predict_price_from_csv(filename):
 
     for i in range(1, 8):  # 7 future days
         future_day = last_day + i
-        predicted_price[0][1] = model.predict([[future_day, last_volume]])
+        predicted_prices[0][1]= model.predict([[future_day, last_volume]])
         future_predictions.append((future_day, predicted_price[0]))
 
     return future_predictions
