@@ -29,6 +29,14 @@ coin_names = {
 selected_name = st.sidebar.selectbox("Choose a coin", list(coin_names.keys()))
 coin = coin_names[selected_name]
 
+# ✅ Prediction range slider
+prediction_days = st.sidebar.slider(
+    "📅 Select number of days to predict",
+    min_value=1,
+    max_value=14,
+    value=7
+)
+
 # News API
 NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"
 
@@ -66,7 +74,7 @@ def load_data_for_graph(filename):
     df = pd.read_csv(filename)
     return df.to_dict(orient="records")
 
-def predict_price_from_csv(filename):
+def predict_price_from_csv(filename, days=7):
     df = pd.read_csv(filename)
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
@@ -79,7 +87,7 @@ def predict_price_from_csv(filename):
 
     future_predictions = []
     last_day = df["day"].max()
-    for i in range(1, 8):
+    for i in range(1, days + 1):
         future_day = last_day + i
         predicted_price = model.predict(np.array([[future_day]]))
         future_predictions.append((i, predicted_price[0]))
