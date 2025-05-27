@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News"])
+page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News", "Terms and Disclaimer"])
 
 st.markdown("# 📊 Crypto Price Predictor")
 st.markdown("### Predict the next 7 days of major coins and see live economic news.")
@@ -165,6 +165,24 @@ if page == "Price Prediction":
 
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
+elif page == "Terms & Disclaimer":
+    st.header("📜 Terms & Disclaimer")
+
+    st.markdown("""
+    **Important Disclaimer**
+
+    This application provides predictions for educational and informational purposes only. The cryptocurrency forecasts are based on historical data and statistical modeling techniques, and they **do not guarantee future results**.
+
+    By using this app, you acknowledge and agree that:
+
+    - You are solely responsible for any financial decisions you make based on this application.
+    - The developers of this app are not liable for any losses, damages, or inaccuracies resulting from use of the predictions or data displayed.
+    - Cryptocurrency trading involves high risk and may result in significant financial loss.
+
+    Always conduct your own research and consult with a qualified financial advisor before making investment decisions.
+    """)
+
+    st.info("Using this app implies acceptance of these terms.")
     ...
 
 
