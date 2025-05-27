@@ -215,12 +215,13 @@ elif page == "Economic News":
          
 elif page == "Terms & Conditions":
     st.header("📜 Terms & Conditions")
-    st.markdown(\"\"\"
+st.markdown("""
 This website is intended for educational and informational purposes only.
 
-Cryptocurrency price predictions shown here are generated using simple statistical models, and **are not financial advice**. 
+Cryptocurrency price predictions shown here are generated using simple statistical models, and **are not financial advice**.
 
 While we strive to keep the data accurate and up-to-date, we make **no guarantees** about the precision or reliability of the predictions. Always do your own research and consult with a licensed financial advisor before making any investment decisions.
 
 Use of this website constitutes acceptance of these terms.
-    \"\"\")
+""")
+
