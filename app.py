@@ -167,9 +167,23 @@ elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
     st.write("✅ News page is loading")  # <- debug
 
+    try:
+        news = get_economic_news()
+        if not news:
+            st.info("No news articles found.")
+        else:
+            for article in news:
+                st.image(article.get("urlToImage"), width=600)
+                st.markdown(f"**[{article['title']}]({article['url']})**")
+                st.caption(f"*{article.get('source', {}).get('name', 'Unknown Source')}*")
+                st.markdown("---")
+    except Exception as e:
+        st.warning("⚠️ Could not load news articles.")
+
 elif page == "Terms & Disclaimer":
     st.header("📜 Terms & Disclaimer")
-    st.write("✅ Terms page is loading")  # <- debug
+
+    st.write("Page loaded: Terms")  # temporary debug
 
     st.markdown("""
     **Important Disclaimer**
@@ -186,25 +200,7 @@ elif page == "Terms & Disclaimer":
     """)
 
     st.info("Using this app implies acceptance of these terms.")
-    ...
 
-
-    try:
-        news = get_economic_news()
-        if not news:
-            st.info("No news articles found from the API.")
-        else:
-            for article in news:
-                # Show article image if available
-                if article.get("urlToImage"):
-                    st.image(article["urlToImage"], width=600)
-                # Show headline as clickable link
-                st.markdown(f"**[{article['title']}]({article['url']})**")
-                # Show source name
-                st.caption(f"*{article.get('source', {}).get('name', 'Unknown Source')}*")
-                st.markdown("---")
-    except Exception as e:
-        st.warning("⚠️ Could not load news articles.")
-
+   
     except Exception as e:
             st.error(f"❌ Error: {e}")
