@@ -6,6 +6,7 @@ import datetime
 import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
 
+
 # Page setup
 st.set_page_config(
     page_title="Crypto Price Predictor",
