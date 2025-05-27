@@ -195,7 +195,7 @@ if page == "Price Prediction":
                 with st.expander("See actual vs predicted"):
                     backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
                     st.dataframe(backtest_df)
-       with st.expander("See actual vs predicted"):
+                with st.expander("See actual vs predicted"):
     backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
     st.dataframe(backtest_df)
 
