@@ -75,6 +75,37 @@ def load_data_for_graph(filename):
     return df.to_dict(orient="records")
 
 def predict_price_from_csv(filename, days=7):
+   
+    from sklearn.metrics import mean_absolute_error
+
+def backtest_model(filename, test_days=5):
+    df = pd.read_csv(filename)
+    df["date"] = pd.to_datetime(df["date"])
+    df["day"] = (df["date"] - df["date"].min()).dt.days
+
+    # Split into training and test
+    train_df = df[:-test_days]
+    test_df = df[-test_days:]
+
+    X_train = train_df[["day"]].values
+    y_train = train_df["price"].values
+    X_test = test_df[["day"]].values
+    y_test = test_df["price"].values
+
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+
+    # Calculate MAE
+    mae = mean_absolute_error(y_test, y_pred)
+
+    # Return actual vs predicted and the error
+    results = list(zip(test_df["date"].dt.strftime("%Y-%m-%d"), y_test, y_pred))
+    return mae, results
+
+    
+    
     df = pd.read_csv(filename)
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
