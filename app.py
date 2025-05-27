@@ -177,7 +177,7 @@ if page == "Price Prediction":
 
     if st.button("Predict Tomorrow's Price"):
         with st.spinner("🔄 Fetching data and generating prediction..."):
-            try:
+           try:
                 data = get_crypto_price(coin)
                 filename = f"{coin}_history.csv"
                 save_data_to_csv(data, filename)
@@ -195,16 +195,31 @@ if page == "Price Prediction":
                 with st.expander("See actual vs predicted"):
                     backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
                     st.dataframe(backtest_df)
-       # Optional download for backtest data
-    csv = backtest_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Download Backtest CSV",
-        data=csv,
-        file_name=f"{coin}_backtest.csv",
-        mime='text/csv'
-    )
-          except Exception as e:
-                st.error(f"❌ Error: {e}")
+       with st.expander("See actual vs predicted"):
+    backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+    st.dataframe(backtest_df)
+
+try:
+    ...
+    mae, backtest_results = backtest_model(filename)
+    st.markdown("### 🔍 Model Accuracy (Backtest)")
+    st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
+
+    with st.expander("See actual vs predicted"):
+        backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+        st.dataframe(backtest_df)
+
+        csv = backtest_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Backtest CSV",
+            data=csv,
+            file_name=f"{coin}_backtest.csv",
+            mime='text/csv'
+        )
+
+except Exception as e:
+    st.error(f"❌ Error: {e}")
+
 
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
