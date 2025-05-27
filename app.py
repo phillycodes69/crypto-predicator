@@ -163,9 +163,9 @@ if page == "Price Prediction":
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
-elif page == "Economic News":
+ elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
-elif page == "Terms & Disclaimer":
+ elif page == "Terms & Disclaimer":
     st.header("📜 Terms & Disclaimer")
 
     st.markdown("""
