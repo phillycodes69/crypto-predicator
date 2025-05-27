@@ -205,10 +205,19 @@ try:
     st.markdown("### 🔍 Model Accuracy (Backtest)")
     st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
 
-    with st.expander("See actual vs predicted"):
-        backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
-        st.dataframe(backtest_df)
+   with st.expander("See actual vs predicted"):
+    backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+    st.dataframe(backtest_df)
 
+    # ✅ Add download button for backtest results
+    csv = backtest_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Download Backtest CSV",
+        data=csv,
+        file_name=f"{coin}_backtest.csv",
+        mime='text/csv'
+    )
+ 
         csv = backtest_df.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="📥 Download Backtest CSV",
