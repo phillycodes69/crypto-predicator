@@ -12,6 +12,9 @@ st.set_page_config(
     page_icon="📈",
     layout="wide"
 )
+st.sidebar.title("🧭 Navigation")
+page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News"])
+
 st.markdown("# 📊 Crypto Price Predictor")
 st.markdown("### Predict the next 7 days of major coins and see live economic news.")
 st.markdown("---")
@@ -135,46 +138,38 @@ def plot_prediction(data, predictions):
     st.plotly_chart(fig, use_container_width=True)
 
 # === Main app logic ===
-if st.button("Predict Tomorrow's Price"):
-    with st.spinner("🔄 Fetching data and generating prediction..."):
-        try:
-            data = get_crypto_price(coin)
-            filename = f"{coin}_history.csv"
-            save_data_to_csv(data, filename)
-            predicted_prices = predict_price_from_csv(filename)
-            full_data = load_data_for_graph(filename)
 
-            day, price = predicted_prices[0]
-            st.success(f"Predicted price for tomorrow: ${price:,.2f}")
-            plot_prediction(full_data, predicted_prices)
-
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
-
-        # News section (after the try/except ends)
-        st.markdown("## 🌍 Economic News That Could Affect Crypto")
-        try:
-            news = get_economic_news()
-            if not news:
-                st.info("No news articles found.")
-            else:
-                for article in news:
-                    st.markdown(f"**[{article['title']}]({article['url']})**")
-                    st.caption(f"*Source: {article['source']['name']}*")
-                    st.markdown("---")
-        except Exception as e:
-            st.warning("⚠️ Could not load news articles.")
-
-
-            st.markdown("## 🌍 Economic News That Could Affect Crypto")
+if page == "Price Prediction":
+    st.header("📈 Crypto Price Prediction")
+    if st.button("Predict Tomorrow's Price"):
+        with st.spinner("🔄 Fetching data and generating prediction..."):
             try:
-                news = get_economic_news()
-                for article in news:
-                    st.markdown(f"**[{article['title']}]({article['url']})**")
-                    st.caption(f"*Source: {article['source']['name']}*")
-                    st.markdown("---")
+                data = get_crypto_price(coin)
+                filename = f"{coin}_history.csv"
+                save_data_to_csv(data, filename)
+                predicted_prices = predict_price_from_csv(filename)
+                full_data = load_data_for_graph(filename)
+
+                day, price = predicted_prices[0]
+                st.success(f"Predicted price for tomorrow: ${price:,.2f}")
+                plot_prediction(full_data, predicted_prices)
             except Exception as e:
-                st.warning("⚠️ Could not load news articles.")
+                st.error(f"❌ Error: {e}")
+
+elif page == "Economic News":
+    st.header("🌍 Economic News That Could Affect Crypto")
+    try:
+        news = get_economic_news()
+        if not news:
+            st.info("No news articles found.")
+        else:
+            for article in news:
+                st.markdown(f"**[{article['title']}]({article['url']})**")
+                st.caption(f"*Source: {article['source']['name']}*")
+                st.markdown("---")
+    except Exception as e:
+        st.warning("⚠️ Could not load news articles.")
+
 
         except Exception as e:
             st.error(f"❌ Error: {e}")
