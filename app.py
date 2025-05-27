@@ -168,7 +168,5 @@ elif page == "Economic News":
                 st.markdown("---")
     except Exception as e:
         st.warning("⚠️ Could not load news articles.")
-
-
-        except Exception as e:
+    except Exception as e:
             st.error(f"❌ Error: {e}")
