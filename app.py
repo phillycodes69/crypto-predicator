@@ -20,7 +20,7 @@ st.markdown("---")
 
 # Sidebar navigation
 st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News, "Terms & Conditions"])
+page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News,"Terms & Conditions"])
 
 # Coin selector in sidebar
 coin_names = {
