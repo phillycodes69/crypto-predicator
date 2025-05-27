@@ -26,8 +26,7 @@ coin_names = {
     "Dogecoin": "dogecoin",
     "Cardano": "cardano"
 }
-
-selected_name = st.selectbox("Choose a coin", list(coin_names.keys()))
+selected_name = st.sidebar.selectbox("Choose a coin", list(coin_names.keys()))
 coin = coin_names[selected_name]
 
 # News API
