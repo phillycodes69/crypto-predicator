@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News", "Terms and Disclaimer"])
+page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News", "Terms & Disclaimer"])
 
 st.markdown("# 📊 Crypto Price Predictor")
 st.markdown("### Predict the next 7 days of major coins and see live economic news.")
@@ -165,8 +165,11 @@ if page == "Price Prediction":
 
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
+    st.write("✅ News page is loading")  # <- debug
+
 elif page == "Terms & Disclaimer":
     st.header("📜 Terms & Disclaimer")
+    st.write("✅ Terms page is loading")  # <- debug
 
     st.markdown("""
     **Important Disclaimer**
