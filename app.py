@@ -201,6 +201,21 @@ elif page == "Terms & Disclaimer":
 
     st.info("Using this app implies acceptance of these terms.")
 
+elif page == "Economic News":
+    st.header("🌍 Economic News That Could Affect Crypto")
+
     try:
+        news = get_economic_news()
+        if not news:
+            st.info("No news articles found.")
+        else:
+            for article in news:
+                st.image(article.get("urlToImage"), width=600)
+                st.markdown(f"**[{article['title']}]({article['url']})**")
+                st.caption(f"*{article.get('source', {}).get('name', 'Unknown Source')}*")
+                st.markdown("---")
+    except Exception as e:
+        st.warning("⚠️ Could not load news articles.")
+   
     except Exception as e:
             st.error(f"❌ Error: {e}")
