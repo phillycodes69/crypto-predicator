@@ -162,7 +162,7 @@ if page == "Price Prediction":
                 data = get_crypto_price(coin)
                 filename = f"{coin}_history.csv"
                 save_data_to_csv(data, filename)
-                predicted_prices = predict_price_from_csv(filename)
+                predicted_prices = predict_price_from_csv(filename, prediction_days)
                 full_data = load_data_for_graph(filename)
 
                 day, price = predicted_prices[0]
