@@ -249,7 +249,7 @@ if st.button("Predict Tomorrow's Price"):
                 st.dataframe(backtest_df)
 
         except Exception as e:
-            st.error(f\"❌ Error: {e}")
+            st.error(f"❌ Error: {e}")
 
     
 elif page == "Economic News":
