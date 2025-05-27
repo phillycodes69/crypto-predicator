@@ -137,17 +137,17 @@ def plot_prediction(data, predictions):
     st.plotly_chart(fig, use_container_width=True)
 
 # === Main app logic ===
-
 if page == "Price Prediction":
     st.header("📈 Crypto Price Prediction")
-     # Show current price
-try:
-    latest_data = get_crypto_price(coin)
-    latest_price = latest_data[-1]["price"]
-    st.metric(label=f"Current {selected_name} Price (USD)", value=f"${latest_price:,.2f}")
-except Exception as e:
-    st.warning("Could not load latest price.")
- 
+
+    # ✅ Current price metric
+    try:
+        latest_data = get_crypto_price(coin)
+        latest_price = latest_data[-1]["price"]
+        st.metric(label=f"Current {selected_name} Price (USD)", value=f"${latest_price:,.2f}")
+    except Exception as e:
+        st.warning("Could not load latest price.")
+
     if st.button("Predict Tomorrow's Price"):
         with st.spinner("🔄 Fetching data and generating prediction..."):
             try:
@@ -165,6 +165,9 @@ except Exception as e:
 
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
+    ...
+
+
     try:
         news = get_economic_news()
         if not news:
