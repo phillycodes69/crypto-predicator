@@ -129,6 +129,32 @@ def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
     prices = [row["price"] for row in data]
 
+  from sklearn.metrics import mean_absolute_error
+
+def backtest_model(filename, test_days=5):
+    df = pd.read_csv(filename)
+    df["date"] = pd.to_datetime(df["date"])
+    df["day"] = (df["date"] - df["date"].min()).dt.days
+
+    # Split into training and test
+    train_df = df[:-test_days]
+    test_df = df[-test_days:]
+
+    X_train = train_df[["day"]].values
+    y_train = train_df["price"].values
+    X_test = test_df[["day"]].values
+    y_test = test_df["price"].values
+
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+    mae = mean_absolute_error(y_test, y_pred)
+
+    results = list(zip(test_df["date"].dt.strftime("%Y-%m-%d"), y_test, y_pred))
+    return mae, results
+
+   
     last_date = datetime.datetime.strptime(dates[-1], "%Y-%m-%d")
     for i, price in predictions:
         next_date = (last_date + datetime.timedelta(days=i)).strftime("%Y-%m-%d")
