@@ -41,7 +41,7 @@ prediction_days = st.sidebar.slider(
 )
 
 # News API key
-NEWS_API_KEY = "your_newsapi_key_here"
+NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"
 
 @st.cache_data(ttl=600)
 def get_economic_news():
