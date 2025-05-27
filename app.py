@@ -201,6 +201,6 @@ elif page == "Terms & Disclaimer":
 
     st.info("Using this app implies acceptance of these terms.")
 
-   
+    try:
     except Exception as e:
             st.error(f"❌ Error: {e}")
