@@ -184,22 +184,20 @@ if page == "Price Prediction":
                 predicted_prices = predict_price_from_csv(filename, prediction_days)
                 full_data = load_data_for_graph(filename)
 
-                # Show predicted price
                 day, price = predicted_prices[0]
-                st.success(f"Predicted price for tomorrow: ${price:,.2f}")
-  
+st.success(f"Predicted price for tomorrow: ${price:,.2f}")
 plot_prediction(full_data, predicted_prices)
 
-# Add this:
+# ✅ Add download button for predicted prices
 predicted_df = pd.DataFrame(predicted_prices, columns=["Days Ahead", "Predicted Price"])
 predicted_csv = predicted_df.to_csv(index=False).encode('utf-8')
+
 st.download_button(
     label="📥 Download Predicted Prices",
     data=predicted_csv,
     file_name=f"{coin}_predicted_prices.csv",
     mime='text/csv'
 )
-
                 mae, backtest_results = backtest_model(filename)
                 st.markdown("### 🔍 Model Accuracy (Backtest)")
                 st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
