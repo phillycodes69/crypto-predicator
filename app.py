@@ -226,21 +226,32 @@ if page == "Price Prediction":
     except Exception as e:
         st.warning("Could not load latest price.")
 
-    if st.button("Predict Tomorrow's Price"):
-        with st.spinner("🔄 Fetching data and generating prediction..."):
-            try:
-                data = get_crypto_price(coin)
-                filename = f"{coin}_history.csv"
-                save_data_to_csv(data, filename)
-                predicted_prices = predict_price_from_csv(filename, prediction_days)
-                full_data = load_data_for_graph(filename)
+if st.button("Predict Tomorrow's Price"):
+    with st.spinner("🔄 Fetching data and generating prediction..."):
+        try:
+            data = get_crypto_price(coin)
+            filename = f"{coin}_history.csv"
+            save_data_to_csv(data, filename)
+            predicted_prices = predict_price_from_csv(filename, prediction_days)
+            full_data = load_data_for_graph(filename)
 
-                day, price = predicted_prices[0]
-                st.success(f"Predicted price for tomorrow: ${price:,.2f}")
-                plot_prediction(full_data, predicted_prices)
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
+            day, price = predicted_prices[0]
+            st.success(f"Predicted price for tomorrow: ${price:,.2f}")
+            plot_prediction(full_data, predicted_prices)
 
+            # ✅ Add backtest inside the same block
+            mae, backtest_results = backtest_model(filename)
+            st.markdown("### 🔍 Model Accuracy (Backtest)")
+            st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
+
+            with st.expander("See actual vs predicted"):
+                backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+                st.dataframe(backtest_df)
+
+        except Exception as e:
+            st.error(f\"❌ Error: {e}\")
+
+    
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
 
