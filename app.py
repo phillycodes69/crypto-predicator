@@ -146,22 +146,25 @@ if st.button("Predict Tomorrow's Price"):
 
             day, price = predicted_prices[0]
             st.success(f"Predicted price for tomorrow: ${price:,.2f}")
-
             plot_prediction(full_data, predicted_prices)
-     except Exception as e:
-            st.error(f"❌ Error: {e}")  # ✅ CLOSE the main try here
-st.markdown("## 🌍 Economic News That Could Affect Crypto")
-try:
-    news = get_economic_news()
-    if not news:
-        st.info("No news articles found.")
-    else:
-        for article in news:
-            st.markdown(f"**[{article['title']}]({article['url']})**")
-            st.caption(f"*Source: {article['source']['name']}*")
-            st.markdown("---")
- except Exception as e:
-    st.warning("⚠️ Could not load news articles.")
+
+        except Exception as e:
+            st.error(f"❌ Error: {e}")
+
+        # News section (after the try/except ends)
+        st.markdown("## 🌍 Economic News That Could Affect Crypto")
+        try:
+            news = get_economic_news()
+            if not news:
+                st.info("No news articles found.")
+            else:
+                for article in news:
+                    st.markdown(f"**[{article['title']}]({article['url']})**")
+                    st.caption(f"*Source: {article['source']['name']}*")
+                    st.markdown("---")
+        except Exception as e:
+            st.warning("⚠️ Could not load news articles.")
+
 
             st.markdown("## 🌍 Economic News That Could Affect Crypto")
             try:
