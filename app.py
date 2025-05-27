@@ -140,6 +140,14 @@ def plot_prediction(data, predictions):
 
 if page == "Price Prediction":
     st.header("📈 Crypto Price Prediction")
+     # Show current price
+try:
+    latest_data = get_crypto_price(coin)
+    latest_price = latest_data[-1]["price"]
+    st.metric(label=f"Current {selected_name} Price (USD)", value=f"${latest_price:,.2f}")
+except Exception as e:
+    st.warning("Could not load latest price.")
+ 
     if st.button("Predict Tomorrow's Price"):
         with st.spinner("🔄 Fetching data and generating prediction..."):
             try:
