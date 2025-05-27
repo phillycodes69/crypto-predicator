@@ -195,8 +195,15 @@ if page == "Price Prediction":
                 with st.expander("See actual vs predicted"):
                     backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
                     st.dataframe(backtest_df)
-
-            except Exception as e:
+       # Optional download for backtest data
+    csv = backtest_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Download Backtest CSV",
+        data=csv,
+        file_name=f"{coin}_backtest.csv",
+        mime='text/csv'
+    )
+          except Exception as e:
                 st.error(f"❌ Error: {e}")
 
 elif page == "Economic News":
