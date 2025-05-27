@@ -129,6 +129,19 @@ def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
     prices = [row["price"] for row in data]
 
+try:
+    mae, backtest_results = backtest_model(filename)
+    st.markdown("### 🔍 Model Accuracy (Backtest)")
+    st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
+
+    with st.expander("See actual vs predicted"):
+        backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+        st.dataframe(backtest_df)
+
+except Exception as e:
+    st.warning(f"⚠️ Could not run backtest: {e}")
+
+  
   from sklearn.metrics import mean_absolute_error
 
 def backtest_model(filename, test_days=5):
