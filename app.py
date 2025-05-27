@@ -143,8 +143,6 @@ try:
 except Exception as e:
     st.warning(f"⚠️ Could not run backtest: {e}")
 
-  
-  from sklearn.metrics import mean_absolute_error
 
 def backtest_model(filename, test_days=5):
     df = pd.read_csv(filename)
