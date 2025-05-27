@@ -7,21 +7,22 @@ import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
 
-
 # Page setup
 st.set_page_config(
     page_title="Crypto Price Predictor",
     page_icon="📈",
     layout="wide"
 )
-st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News", "Terms & Disclaimer"])
 
 st.markdown("# 📊 Crypto Price Predictor")
-st.markdown("### Predict the next 7 days of major coins and see live economic news.")
+st.markdown("### Predict the next 7–14 days of major coins and view real-world economic news.")
 st.markdown("---")
 
-# CoinGecko-compatible coin IDs
+# Sidebar navigation
+st.sidebar.title("🧭 Navigation")
+page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News"])
+
+# Coin selector in sidebar
 coin_names = {
     "Bitcoin": "bitcoin",
     "Ethereum": "ethereum",
@@ -31,7 +32,7 @@ coin_names = {
 selected_name = st.sidebar.selectbox("Choose a coin", list(coin_names.keys()))
 coin = coin_names[selected_name]
 
-# ✅ Prediction range slider
+# Prediction range slider
 prediction_days = st.sidebar.slider(
     "📅 Select number of days to predict",
     min_value=1,
@@ -39,8 +40,8 @@ prediction_days = st.sidebar.slider(
     value=7
 )
 
-# News API
-NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"
+# News API key
+NEWS_API_KEY = "your_newsapi_key_here"
 
 @st.cache_data(ttl=600)
 def get_economic_news():
@@ -77,37 +78,6 @@ def load_data_for_graph(filename):
     return df.to_dict(orient="records")
 
 def predict_price_from_csv(filename, days=7):
-   
-    from sklearn.metrics import mean_absolute_error
-
-def backtest_model(filename, test_days=5):
-    df = pd.read_csv(filename)
-    df["date"] = pd.to_datetime(df["date"])
-    df["day"] = (df["date"] - df["date"].min()).dt.days
-
-    # Split into training and test
-    train_df = df[:-test_days]
-    test_df = df[-test_days:]
-
-    X_train = train_df[["day"]].values
-    y_train = train_df["price"].values
-    X_test = test_df[["day"]].values
-    y_test = test_df["price"].values
-
-    model = LinearRegression()
-    model.fit(X_train, y_train)
-
-    y_pred = model.predict(X_test)
-
-    # Calculate MAE
-    mae = mean_absolute_error(y_test, y_pred)
-
-    # Return actual vs predicted and the error
-    results = list(zip(test_df["date"].dt.strftime("%Y-%m-%d"), y_test, y_pred))
-    return mae, results
-
-    
-    
     df = pd.read_csv(filename)
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
@@ -127,29 +97,11 @@ def backtest_model(filename, test_days=5):
 
     return future_predictions
 
-def plot_prediction(data, predictions):
-    dates = [row["date"] for row in data]
-    prices = [row["price"] for row in data]
-
-try:
-    mae, backtest_results = backtest_model(filename)
-    st.markdown("### 🔍 Model Accuracy (Backtest)")
-    st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
-
-    with st.expander("See actual vs predicted"):
-        backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
-        st.dataframe(backtest_df)
-
-except Exception as e:
-    st.warning(f"⚠️ Could not run backtest: {e}")
-
-
 def backtest_model(filename, test_days=5):
     df = pd.read_csv(filename)
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
 
-    # Split into training and test
     train_df = df[:-test_days]
     test_df = df[-test_days:]
 
@@ -167,7 +119,10 @@ def backtest_model(filename, test_days=5):
     results = list(zip(test_df["date"].dt.strftime("%Y-%m-%d"), y_test, y_pred))
     return mae, results
 
-   
+def plot_prediction(data, predictions):
+    dates = [row["date"] for row in data]
+    prices = [row["price"] for row in data]
+
     last_date = datetime.datetime.strptime(dates[-1], "%Y-%m-%d")
     for i, price in predictions:
         next_date = (last_date + datetime.timedelta(days=i)).strftime("%Y-%m-%d")
@@ -214,28 +169,23 @@ def backtest_model(filename, test_days=5):
 
     st.plotly_chart(fig, use_container_width=True)
 
-# === Main app logic ===
+# === Page Views ===
 if page == "Price Prediction":
     st.header("📈 Crypto Price Prediction")
 
     if st.button("Predict Tomorrow's Price"):
         with st.spinner("🔄 Fetching data and generating prediction..."):
             try:
-                # 1. Get data and filename
                 data = get_crypto_price(coin)
                 filename = f"{coin}_history.csv"
                 save_data_to_csv(data, filename)
-
-                # 2. Run prediction
                 predicted_prices = predict_price_from_csv(filename, prediction_days)
                 full_data = load_data_for_graph(filename)
 
-                # 3. Show prediction result
                 day, price = predicted_prices[0]
                 st.success(f"Predicted price for tomorrow: ${price:,.2f}")
                 plot_prediction(full_data, predicted_prices)
 
-                # 4. Run backtest
                 mae, backtest_results = backtest_model(filename)
                 st.markdown("### 🔍 Model Accuracy (Backtest)")
                 st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
@@ -247,15 +197,12 @@ if page == "Price Prediction":
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
-
-    
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
-
     try:
         news = get_economic_news()
         if not news:
-            st.info("No news articles found.")
+            st.info("No news articles found from the API.")
         else:
             for article in news:
                 st.image(article.get("urlToImage"), width=600)
@@ -264,44 +211,3 @@ elif page == "Economic News":
                 st.markdown("---")
     except Exception as e:
         st.warning("⚠️ Could not load news articles.")
-
-
-elif page == "Terms & Disclaimer":
-    st.header("📜 Terms & Disclaimer")
-
-    st.write("Page loaded: Terms")  # temporary debug
-
-    st.markdown("""
-    **Important Disclaimer**
-
-    This application provides predictions for educational and informational purposes only. The cryptocurrency forecasts are based on historical data and statistical modeling techniques, and they **do not guarantee future results**.
-
-    By using this app, you acknowledge and agree that:
-
-    - You are solely responsible for any financial decisions you make based on this application.
-    - The developers of this app are not liable for any losses, damages, or inaccuracies resulting from use of the predictions or data displayed.
-    - Cryptocurrency trading involves high risk and may result in significant financial loss.
-
-    Always conduct your own research and consult with a qualified financial advisor before making investment decisions.
-    """)
-
-    st.info("Using this app implies acceptance of these terms.")
-
-elif page == "Economic News":
-    st.header("🌍 Economic News That Could Affect Crypto")
-
-    try:
-        news = get_economic_news()
-        if not news:
-            st.info("No news articles found.")
-        else:
-            for article in news:
-                st.image(article.get("urlToImage"), width=600)
-                st.markdown(f"**[{article['title']}]({article['url']})**")
-                st.caption(f"*{article.get('source', {}).get('name', 'Unknown Source')}*")
-                st.markdown("---")
-    except Exception as e:
-        st.warning("⚠️ Could not load news articles.")
-   
-    except Exception as e:
-            st.error(f"❌ Error: {e}")
