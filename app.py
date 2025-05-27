@@ -165,7 +165,6 @@ if page == "Price Prediction":
 
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
-    st.write("✅ News page is loading")  # <- debug
 
     try:
         news = get_economic_news()
@@ -179,6 +178,7 @@ elif page == "Economic News":
                 st.markdown("---")
     except Exception as e:
         st.warning("⚠️ Could not load news articles.")
+
 
 elif page == "Terms & Disclaimer":
     st.header("📜 Terms & Disclaimer")
