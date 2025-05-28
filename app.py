@@ -245,8 +245,8 @@ if page == "Price Prediction":
                 
                 mae, backtest_results = backtest_model(filename)
                 st.markdown("### 🔍 Model Accuracy (Backtest)")
-                st.write(f**MAE** (Mean Absolute Error): ${mae:,.2f}")
-                st.write(f**MAPE** (Mean Absolute % Error): {mape:.2f}%")
+                st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
+                st.write(f"**MAPE** (Mean Absolute % Error): {mape:.2f}%")
 
                 with st.expander("See actual vs predicted"):
                     backtest_df = pd.DataFrame(
