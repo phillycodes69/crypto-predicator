@@ -243,7 +243,7 @@ if page == "Price Prediction":
                     mime='text/csv'
                 )
                 
-                mae, backtest_results = backtest_model(filename)
+                mae, mape, backtest_results = backtest_model(filename)
                 st.markdown("### 🔍 Model Accuracy (Backtest)")
                 st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
                 st.write(f"**MAPE** (Mean Absolute % Error): {mape:.2f}%")
