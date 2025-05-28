@@ -109,7 +109,14 @@ def get_crypto_price(coin_id):
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
     params = {"vs_currency": "usd", "days": "90", "interval": "daily"}
     response = requests.get(url, params=params)
-    data = response.json()
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch data for '{coin_id}' (status {response.status_code})")
+
+    try:
+        data = response.json()
+    except ValueError:
+        raise Exception("Received invalid JSON response from API")
 
     price_data = []
     for entry in data["prices"]:
