@@ -13,43 +13,43 @@ def backtest_model(filename):
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
 
-X = df[["day"]].values
-y = df["prices"].values
+    X = df[["day"]].values
+    y = df["prices"].values
 
-backtest_results = []
-mape_errors = []
+    backtest_results = []
+    mape_errors = []
 
-for i in range(1,6):  #last 5 days 
-    past_df = df.iloc[:-i]
-    future_actual = df.iloc[-1]
+    for i in range(1,6):  #last 5 days 
+        past_df = df.iloc[:-i]
+        future_actual = df.iloc[-1]
 
-    if len(past_df) < 2:
-        continue
+        if len(past_df) < 2:
+            continue
 
-    past_x = past_df[["day"]].values
-    past_y = past_df["price"].values
+        past_x = past_df[["day"]].values
+        past_y = past_df["price"].values
 
-    model.fit(past_X, past_y)
-    future_day = future_actual["day"]
-    predicted = model.predict(np.array([[future_day]]))[0]
-    actual = future_actual["price"]
+        model.fit(past_X, past_y)
+        future_day = future_actual["day"]
+        predicted = model.predict(np.array([[future_day]]))[0]
+        actual = future_actual["price"]
 
-    backtest_results.append((
-        future_actual["date"].strftime("%Y-%m-%d"),
-        actual,
-        predicted
-    ))
+        backtest_results.append((
+            future_actual["date"].strftime("%Y-%m-%d"),
+            actual,
+            predicted
+        ))
 
-    error_pct = abs((actual - predicted) / actual)
-    mape_errors.append(error_pct)
+        error_pct = abs((actual - predicted) / actual)
+        mape_errors.append(error_pct)
 
-mae = mean_absolute_error(
-    [r[1] for r in backtest_results],  #actual
-    [r[2] for r in backtest_results]   #predicted
-)
+    mae = mean_absolute_error(
+        [r[1] for r in backtest_results],  #actual
+        [r[2] for r in backtest_results]   #predicted
+    )
 
-mape = np.mean(mape_errors) * 100  # as a %
-return mae, mape, backtest_results
+    mape = np.mean(mape_errors) * 100  # as a %
+    return mae, mape, backtest_results
 
 
 # Page setup
