@@ -8,6 +8,50 @@ import io
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
 
+def backtest_model(filename):
+    df = pd.read_csv(filename)
+    df["date"] = pd.to_datetime(df["date"])
+    df["day"] = (df["date"] - df["date"].min()).dt.days
+
+X = df[["day"]].values
+y = df["prices"].values
+
+backtest_results = []
+mape_errors = []
+
+for i in range(1,6):  #last 5 days 
+    past_df = df.iloc[:-i]
+    future_actual = df.iloc[-1]
+
+    if len(past_df) < 2:
+        continue
+
+    past_x = past_df[["day"]].values
+    past_y = past_df["price"].values
+
+    model.fit(past_X, past_y)
+    future_day = future_actual["day"]
+    predicted = model.predict(np.array([[future_day]]))[0]
+    actual = future_actual["price"]
+
+    backtest_results.append((
+        future_actual["date"].strftime("%Y-%m-%d"),
+        actual,
+        predicted
+    ))
+
+    error_pct = abs((actual - predicted) / actual)
+    mape_errors.append(error_pct)
+
+mae = mean_absolute_error(
+    [r[1] for r in backtest_results],  #actual
+    [r[2] for r in backtest_results]   #predicted
+)
+
+mape = np.mean(mape_errors) * 100  # as a %
+return mae, mape, backtest_results
+
+
 # Page setup
 st.set_page_config(
     page_title="Crypto Price Predictor",
@@ -201,7 +245,8 @@ if page == "Price Prediction":
                 
                 mae, backtest_results = backtest_model(filename)
                 st.markdown("### 🔍 Model Accuracy (Backtest)")
-                st.write(f"Mean Absolute Error over last 5 days: **${mae:,.2f}**")
+                st.write(f**MAE** (Mean Absolute Error): ${mae:,.2f}")
+                st.write(f**MAPE** (Mean Absolute % Error): {mape:.2f}%")
 
                 with st.expander("See actual vs predicted"):
                     backtest_df = pd.DataFrame(
