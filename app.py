@@ -16,6 +16,9 @@ def backtest_model(filename):
     X = df[["day"]].values
     y = df["prices"].values
 
+    model = LinearRegression()
+    model.fit(X, y)
+
     backtest_results = []
     mape_errors = []
 
@@ -44,7 +47,7 @@ def backtest_model(filename):
         mape_errors.append(error_pct)
 
     if not backtest_results or not mape_errors:
-        return mae, 0.0, []
+        return mae, 0.0, 0.0, []
     
     mae = mean_absolute_error(
         [r[1] for r in backtest_results],  #actual
