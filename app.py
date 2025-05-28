@@ -47,13 +47,12 @@ def backtest_model(filename):
         mape_errors.append(error_pct)
 
     if not backtest_results or not mape_errors:
-        return mae, mape, 0.0, 0.0, []
+        return 0.0, 0.0, []
     
     mae = mean_absolute_error(
         [r[1] for r in backtest_results],  #actual
         [r[2] for r in backtest_results]   #predicted
     )
-
     mape = np.mean(mape_errors) * 100  # as a %
     return mae, mape, backtest_results
 
@@ -255,7 +254,7 @@ if page == "Price Prediction":
                     file_name=f"{coin}_predicted_prices.csv",
                     mime='text/csv'
                 )
-                
+            
                 mae, mape, backtest_results = backtest_model(filename)
                 st.markdown("### 🔍 Model Accuracy (Backtest)")
                 st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
