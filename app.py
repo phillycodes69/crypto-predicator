@@ -47,7 +47,7 @@ def backtest_model(filename):
         mape_errors.append(error_pct)
 
     if not backtest_results or not mape_errors:
-        return mae, 0.0, 0.0, []
+        return mae, mape, 0.0, 0.0, []
     
     mae = mean_absolute_error(
         [r[1] for r in backtest_results],  #actual
@@ -176,7 +176,7 @@ def backtest_model(filename, test_days=5):
     mae = mean_absolute_error(y_test, y_pred)
 
     results = list(zip(test_df["date"].dt.strftime("%Y-%m-%d"), y_test, y_pred))
-    return mae, results
+    return mae, mape, results
 
 def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
