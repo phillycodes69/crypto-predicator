@@ -43,8 +43,8 @@ def backtest_model(filename):
         error_pct = abs((actual - predicted) / actual)
         mape_errors.append(error_pct)
 
-    if not backtest_results or not mape_errors
-       return mae, 0.0, []
+    if not backtest_results or not mape_errors:
+        return mae, 0.0, []
     
     mae = mean_absolute_error(
         [r[1] for r in backtest_results],  #actual
