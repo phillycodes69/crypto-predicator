@@ -19,7 +19,7 @@ def backtest_model(filename):
     backtest_results = []
     mape_errors = []
 
-    for i in range(1,6):  #last 5 days 
+    for i in range(1, 6):  #last 5 days 
         past_df = df.iloc[:-i]
         future_actual = df.iloc[-1]
 
