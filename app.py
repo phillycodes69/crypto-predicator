@@ -54,7 +54,9 @@ def backtest_model(filename, test_days=5):
         [r[2] for r in backtest_results]
     )
     mape = np.mean(mape_errors) * 100
+
     return mae, mape, backtest_results
+
 
 
 
