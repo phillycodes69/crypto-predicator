@@ -53,6 +53,7 @@ def backtest_model(filename):
         [r[1] for r in backtest_results],  #actual
         [r[2] for r in backtest_results]   #predicted
     )
+   
     mape = np.mean(mape_errors) * 100  # as a %
     return mae, mape, backtest_results
 
