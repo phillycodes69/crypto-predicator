@@ -253,6 +253,9 @@ if page == "Price Prediction":
                            file_name="backtest_results.csv",
                            mime="text/csv"
                        )
+          
+           except Exception as e:
+               st.error(f"❌ Error: {e}")
 
 
 elif page == "Economic News":
