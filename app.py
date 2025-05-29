@@ -236,27 +236,25 @@ if page == "Price Prediction":
                 full_data = load_data_for_graph(filename)
 
                 day, price = predicted_prices[0]
-                st.success(f"Predicted price for tomorrow: ${price:,.2f}")
+                st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
                 plot_prediction(full_data, predicted_prices)
 
-                try:
-                    mae, backtest_results = backtest_model(filename)
-                except Exception as e:
-                    st.warning(f"⚠️ Could not run backtest: {type(e).__name__} - {e}")
-                    mae, backtest_results = 0.0, []
- 
-
-                st.write("DEBUG >>> MAE:", mae)
-              
                 st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
-                
 
-            except Exception as e:
-                    st.warning(f"⚠️ Could not run backtest: {type(e).__name__} - {e}")
-                    mae, backtest_results = 0.0, 0.0, []
+                if backtest_results:
+                   with st.expander("See actual vs predicted"):
+                       backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+                       st.dataframe(backtest_df)
+
+                       csv = backtest_df.to_csv(index=False).encode('utf-8')
+                       st.download_button(
+                           label="Download Backtest Results as CSV",
+                           data=csv,
+                           file_name="backtest_results.csv",
+                           mime="text/csv"
+                       )
 
 
-    
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
     try:
