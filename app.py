@@ -254,8 +254,8 @@ if page == "Price Prediction":
                            mime="text/csv"
                        )
           
-           except Exception as e:
-               st.error(f"❌ Error: {e}")
+             except Exception as e:
+                 st.error(f"❌ Error: {e}")
 
 
 elif page == "Economic News":
