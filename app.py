@@ -8,7 +8,7 @@ import io
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
 
-def backtest_model(filename):
+def backtest_model(filename, test_days=5):
     df = pd.read_csv(filename)
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
@@ -156,7 +156,7 @@ def predict_price_from_csv(filename, days=7):
 
     return future_predictions
 
-def backtest_model(filename):
+def backtest_model(filename, test_days=5):
     df = pd.read_csv(filename)
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
