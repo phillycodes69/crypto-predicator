@@ -223,39 +223,31 @@ def plot_prediction(data, predictions):
     st.plotly_chart(fig, use_container_width=True)
 
 # === Page Views ===
-if page == "Price Prediction":
-    st.header("📈 Crypto Price Prediction")
-    if st.button("Predict Tomorrow's Price"):
-        with st.spinner("🔄 Fetching data and generating prediction..."):
-            try:
-                data = get_crypto_price(coin)
-                filename = f"{coin}_history.csv"
-                save_data_to_csv(data, filename)
+if st.button("Predict Tomorrow's Price"):
+    with st.spinner("🔄 Fetching data and generating prediction..."):
+        try:
+            # All your logic here
+            day, price = predicted_prices[0]
+            st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
+            plot_prediction(full_data, predicted_prices)
 
-                predicted_prices = predict_price_from_csv(filename)
-                full_data = load_data_for_graph(filename)
+            st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
 
-                day, price = predicted_prices[0]
-                st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
-                plot_prediction(full_data, predicted_prices)
+            if backtest_results:
+                with st.expander("See actual vs predicted"):
+                    backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+                    st.dataframe(backtest_df)
 
-                st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
+                    csv = backtest_df.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="Download Backtest Results as CSV",
+                        data=csv,
+                        file_name="backtest_results.csv",
+                        mime="text/csv"
+                    )
 
-                if backtest_results:
-                   with st.expander("See actual vs predicted"):
-                       backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
-                       st.dataframe(backtest_df)
-
-                       csv = backtest_df.to_csv(index=False).encode('utf-8')
-                       st.download_button(
-                           label="Download Backtest Results as CSV",
-                           data=csv,
-                           file_name="backtest_results.csv",
-                           mime="text/csv"
-                       )
-          
-             except Exception as e:
-                 st.error(f"❌ Error: {e}")
+        except Exception as e:
+            st.error(f"❌ Error: {e}")
 
 
 elif page == "Economic News":
