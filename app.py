@@ -260,8 +260,10 @@ if page == "Price Prediction":
                 st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
                 st.write(f"**MAPE** (Mean Absolute % Error): {mape:.2f}%")
 
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
+                except Exception as e:
+                    st.warning(f"⚠️ Could not run backtest: {type(e).__name__} - {e}")
+                    mae, mape, backtest_results = 0.0, 0.0, []
+
 
     
 elif page == "Economic News":
