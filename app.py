@@ -20,7 +20,6 @@ def backtest_model(filename, test_days=5):
     model.fit(X, y)
 
     backtest_results = []
-    mape_errors = []
 
     for i in range(1, test_days + 1):
         past_df = df.iloc[:-i]
@@ -42,25 +41,18 @@ def backtest_model(filename, test_days=5):
             predicted
         ))
 
-        if actual != 0:
-            error_pct = abs((actual - predicted) / actual)
-            mape_errors.append(error_pct)
-
-    if not backtest_results or not mape_errors:
-        return 0.0, 0.0, []
+    if not backtest_results:
+        return 0.0, []
 
     mae = mean_absolute_error(
         [r[1] for r in backtest_results],
         [r[2] for r in backtest_results]
     )
-    mape = np.mean(mape_errors) * 100
 
-    return mae, mape, backtest_results
-
+    return mae, backtest_results
 
 
 
-# Page setup
 st.set_page_config(
     page_title="Crypto Price Predictor",
     page_icon="📈",
@@ -247,12 +239,12 @@ if page == "Price Prediction":
                 st.success(f"Predicted price for tomorrow: ${price:,.2f}")
                 plot_prediction(full_data, predicted_prices)
 
-                test_day = 5
                 try:
-                    mae, mape, backtest_results = backtest_model(filename)
+                    mae, backtest_results = backtest_model(filename)
                 except Exception as e:
-                    st.warning(f"⚠️ Could not run backtest: {e}")
-                    mae, mape, backtest_results = 0.0, 0.0, []
+                    st.warning(f"⚠️ Could not run backtest: {type(e).__name__} - {e}")
+                    mae, backtest_results = 0.0, []
+ 
 
                 st.write("DEBUG >>> MAE:", mae)
                 st.write("DEBUG >>> MAPE:", mape)
