@@ -170,7 +170,7 @@ def backtest_model(filename, test_days=5):
     mae = mean_absolute_error(y_test, y_pred)
 
     results = list(zip(test_df["date"].dt.strftime("%Y-%m-%d"), y_test, y_pred))
-    return mae, mape, results
+    return mae, results
 
 def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
