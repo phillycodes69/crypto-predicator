@@ -247,7 +247,7 @@ if page == "Price Prediction":
                 st.success(f"Predicted price for tomorrow: ${price:,.2f}")
                 plot_prediction(full_data, predicted_prices)
 
-                # Try to run backtest
+                test_day = 5
                 try:
                     mae, mape, backtest_results = backtest_model(filename)
                 except Exception as e:
@@ -260,7 +260,7 @@ if page == "Price Prediction":
                 st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
                 st.write(f"**MAPE** (Mean Absolute % Error): {mape:.2f}%")
 
-                except Exception as e:
+            except Exception as e:
                     st.warning(f"⚠️ Could not run backtest: {type(e).__name__} - {e}")
                     mae, mape, backtest_results = 0.0, 0.0, []
 
