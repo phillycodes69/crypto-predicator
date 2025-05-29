@@ -6,7 +6,90 @@ import datetime
 import plotly.graph_objects as go
 import io
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+
+# Page setup
+st.set_page_config(
+    page_title="Crypto Price Predictor",
+    page_icon="📈",
+    layout="wide"
+)
+
+st.markdown("# 📊 Crypto Price Predictor")
+st.markdown("### Predict the next 7–14 days of major coins and view real-world economic news.")
+st.markdown("---")
+
+# Sidebar navigation
+st.sidebar.title("🧭 Navigation")
+page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News"])
+
+# Coin selector in sidebar
+coin_names = {
+    "Bitcoin": "bitcoin",
+    "Ethereum": "ethereum",
+    "Dogecoin": "dogecoin",
+    "Cardano": "cardano"
+}
+selected_name = st.sidebar.selectbox("Choose a coin", list(coin_names.keys()))
+coin = coin_names[selected_name]
+
+# News API key
+NEWS_API_KEY = "your_newsapi_key_here"
+
+@st.cache_data(ttl=600)
+def get_economic_news():
+    url = "https://newsapi.org/v2/top-headlines"
+    params = {
+        "category": "business",
+        "language": "en",
+        "pageSize": 5,
+        "apiKey": NEWS_API_KEY
+    }
+    response = requests.get(url, params=params)
+    return response.json().get("articles", [])
+
+@st.cache_data(ttl=600)
+def get_crypto_price(coin_id):
+    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
+    params = {"vs_currency": "usd", "days": "90", "interval": "daily"}
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    price_data = []
+    for entry in data["prices"]:
+        date = datetime.datetime.fromtimestamp(entry[0] / 1000).strftime("%Y-%m-%d")
+        price = entry[1]
+        price_data.append({"date": date, "price": price})
+    return price_data
+
+def save_data_to_csv(data, filename):
+    df = pd.DataFrame(data)
+    df.to_csv(filename, index=False)
+
+def load_data_for_graph(filename):
+    df = pd.read_csv(filename)
+    return df.to_dict(orient="records")
+
+def predict_price_from_csv(filename):
+    df = pd.read_csv(filename)
+    df["date"] = pd.to_datetime(df["date"])
+    df["day"] = (df["date"] - df["date"].min()).dt.days
+
+    X = df[["day"]].values
+    y = df["price"].values
+
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X, y)
+
+    future_predictions = []
+    last_day = df["day"].max()
+    for i in range(1, 8):
+        future_day = last_day + i
+        predicted_price = model.predict(np.array([[future_day]]))
+        future_predictions.append((i, predicted_price[0]))
+
+    return future_predictions
 
 def backtest_model(filename, test_days=5):
     df = pd.read_csv(filename)
@@ -16,8 +99,7 @@ def backtest_model(filename, test_days=5):
     X = df[["day"]].values
     y = df["price"].values
 
-    model = LinearRegression()
-    model.fit(X, y)
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
 
     backtest_results = []
 
@@ -50,127 +132,6 @@ def backtest_model(filename, test_days=5):
     )
 
     return mae, backtest_results
-
-
-
-st.set_page_config(
-    page_title="Crypto Price Predictor",
-    page_icon="📈",
-    layout="wide"
-)
-
-st.markdown("# 📊 Crypto Price Predictor")
-st.markdown("### Predict the next 7–14 days of major coins and view real-world economic news.")
-st.markdown("---")
-
-# Sidebar navigation
-st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News", "Terms & Conditions"])
-
-
-# Coin selector in sidebar
-coin_names = {
-    "Bitcoin": "bitcoin",
-    "Ethereum": "ethereum",
-    "Dogecoin": "dogecoin",
-    "Cardano": "cardano"
-}
-selected_name = st.sidebar.selectbox("Choose a coin", list(coin_names.keys()))
-coin = coin_names[selected_name]
-
-# Prediction range slider
-prediction_days = st.sidebar.slider(
-    "📅 Select number of days to predict",
-    min_value=1,
-    max_value=14,
-    value=7
-)
-
-# News API key
-NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"
-
-@st.cache_data(ttl=600)
-def get_economic_news():
-    url = "https://newsapi.org/v2/top-headlines"
-    params = {
-        "category": "business",
-        "language": "en",
-        "pageSize": 5,
-        "apiKey": NEWS_API_KEY
-    }
-    response = requests.get(url, params=params)
-    return response.json().get("articles", [])
-
-@st.cache_data(ttl=600)
-def get_crypto_price(coin_id):
-    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params = {"vs_currency": "usd", "days": "90", "interval": "daily"}
-    response = requests.get(url, params=params)
-
-    if response.status_code != 200:
-        raise Exception(f"Failed to fetch data for '{coin_id}' (status {response.status_code})")
-
-    try:
-        data = response.json()
-    except ValueError:
-        raise Exception("Received invalid JSON response from API")
-
-    price_data = []
-    for entry in data["prices"]:
-        date = datetime.datetime.fromtimestamp(entry[0] / 1000).strftime("%Y-%m-%d")
-        price = entry[1]
-        price_data.append({"date": date, "price": price})
-    return price_data
-
-def save_data_to_csv(data, filename):
-    df = pd.DataFrame(data)
-    df.to_csv(filename, index=False)
-
-def load_data_for_graph(filename):
-    df = pd.read_csv(filename)
-    return df.to_dict(orient="records")
-
-def predict_price_from_csv(filename, days=7):
-    df = pd.read_csv(filename)
-    df["date"] = pd.to_datetime(df["date"])
-    df["day"] = (df["date"] - df["date"].min()).dt.days
-
-    X = df[["day"]].values
-    y = df["price"].values
-
-    model = LinearRegression()
-    model.fit(X, y)
-
-    future_predictions = []
-    last_day = df["day"].max()
-    for i in range(1, days + 1):
-        future_day = last_day + i
-        predicted_price = model.predict(np.array([[future_day]]))
-        future_predictions.append((i, predicted_price[0]))
-
-    return future_predictions
-
-def backtest_model(filename, test_days=5):
-    df = pd.read_csv(filename)
-    df["date"] = pd.to_datetime(df["date"])
-    df["day"] = (df["date"] - df["date"].min()).dt.days
-
-    train_df = df[:-test_days]
-    test_df = df[-test_days:]
-
-    X_train = train_df[["day"]].values
-    y_train = train_df["price"].values
-    X_test = test_df[["day"]].values
-    y_test = test_df["price"].values
-
-    model = LinearRegression()
-    model.fit(X_train, y_train)
-
-    y_pred = model.predict(X_test)
-    mae = mean_absolute_error(y_test, y_pred)
-
-    results = list(zip(test_df["date"].dt.strftime("%Y-%m-%d"), y_test, y_pred))
-    return mae, results
 
 def plot_prediction(data, predictions):
     dates = [row["date"] for row in data]
@@ -223,32 +184,39 @@ def plot_prediction(data, predictions):
     st.plotly_chart(fig, use_container_width=True)
 
 # === Page Views ===
-if st.button("Predict Tomorrow's Price"):
-    with st.spinner("🔄 Fetching data and generating prediction..."):
-        try:
-            # All your logic here
-            day, price = predicted_prices[0]
-            st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
-            plot_prediction(full_data, predicted_prices)
+if page == "Price Prediction":
+    st.header("📈 Crypto Price Prediction")
+    if st.button("Predict Tomorrow's Price"):
+        with st.spinner("🔄 Fetching data and generating prediction..."):
+            try:
+                data = get_crypto_price(coin)
+                filename = f"{coin}_history.csv"
+                save_data_to_csv(data, filename)
+                predicted_prices = predict_price_from_csv(filename)
+                full_data = load_data_for_graph(filename)
+                mae, backtest_results = backtest_model(filename)
 
-            st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
+                day, price = predicted_prices[0]
+                st.success(f"Predicted price for tomorrow: ${predicted_prices[0][1]:,.2f}")
+                plot_prediction(full_data, predicted_prices)
 
-            if backtest_results:
-                with st.expander("See actual vs predicted"):
-                    backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
-                    st.dataframe(backtest_df)
+                st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
 
-                    csv = backtest_df.to_csv(index=False).encode('utf-8')
-                    st.download_button(
-                        label="Download Backtest Results as CSV",
-                        data=csv,
-                        file_name="backtest_results.csv",
-                        mime="text/csv"
-                    )
+                if backtest_results:
+                    with st.expander("See actual vs predicted"):
+                        backtest_df = pd.DataFrame(backtest_results, columns=["Date", "Actual Price", "Predicted Price"])
+                        st.dataframe(backtest_df)
 
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
+                        csv = backtest_df.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            label="Download Backtest Results as CSV",
+                            data=csv,
+                            file_name="backtest_results.csv",
+                            mime="text/csv"
+                        )
 
+            except Exception as e:
+                st.error(f"❌ Error: {e}")
 
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
@@ -264,16 +232,3 @@ elif page == "Economic News":
                 st.markdown("---")
     except Exception as e:
         st.warning("⚠️ Could not load news articles.")
-         
-elif page == "Terms & Conditions":
-    st.header("📜 Terms & Conditions")
-st.markdown("""
-This website is intended for educational and informational purposes only.
-
-Cryptocurrency price predictions shown here are generated using simple statistical models, and **are not financial advice**.
-
-While we strive to keep the data accurate and up-to-date, we make **no guarantees** about the precision or reliability of the predictions. Always do your own research and consult with a licensed financial advisor before making any investment decisions.
-
-Use of this website constitutes acceptance of these terms.
-""")
-
