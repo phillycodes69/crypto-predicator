@@ -247,14 +247,13 @@ if page == "Price Prediction":
  
 
                 st.write("DEBUG >>> MAE:", mae)
-                st.write("DEBUG >>> MAPE:", mape)
-
+              
                 st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
-                st.write(f"**MAPE** (Mean Absolute % Error): {mape:.2f}%")
+                
 
             except Exception as e:
                     st.warning(f"⚠️ Could not run backtest: {type(e).__name__} - {e}")
-                    mae, mape, backtest_results = 0.0, 0.0, []
+                    mae, backtest_results = 0.0, 0.0, []
 
 
     
