@@ -155,7 +155,7 @@ def predict_price_from_csv(filename, days=7):
 
     return future_predictions
 
-def backtest_model(filename, test_days=5):
+def backtest_model(filename):
     df = pd.read_csv(filename)
     df["date"] = pd.to_datetime(df["date"])
     df["day"] = (df["date"] - df["date"].min()).dt.days
@@ -230,56 +230,34 @@ def plot_prediction(data, predictions):
 # === Page Views ===
 if page == "Price Prediction":
     st.header("📈 Crypto Price Prediction")
-
     if st.button("Predict Tomorrow's Price"):
         with st.spinner("🔄 Fetching data and generating prediction..."):
             try:
                 data = get_crypto_price(coin)
                 filename = f"{coin}_history.csv"
                 save_data_to_csv(data, filename)
-                predicted_prices = predict_price_from_csv(filename, prediction_days)
+
+                predicted_prices = predict_price_from_csv(filename)
                 full_data = load_data_for_graph(filename)
 
                 day, price = predicted_prices[0]
                 st.success(f"Predicted price for tomorrow: ${price:,.2f}")
                 plot_prediction(full_data, predicted_prices)
 
-                # ✅ Add download button for predicted prices
-                predicted_df = pd.DataFrame(predicted_prices, columns=["Days Ahead", "Predicted Price"])
-                predicted_csv = predicted_df.to_csv(index=False).encode('utf-8')
+                # Try to run backtest
+                try:
+                    mae, mape, backtest_results = backtest_model(filename)
+                except Exception as e:
+                    st.warning(f"⚠️ Could not run backtest: {e}")
+                    mae, mape, backtest_results = 0.0, 0.0, []
 
-                st.download_button(
-                    label="📥 Download Predicted Prices",
-                    data=predicted_csv,
-                    file_name=f"{coin}_predicted_prices.csv",
-                    mime='text/csv'
-                )
-            
-                mae, mape, backtest_results = backtest_model(filename)
-                st.markdown("### 🔍 Model Accuracy (Backtest)")
                 st.write(f"**MAE** (Mean Absolute Error): ${mae:,.2f}")
                 st.write(f"**MAPE** (Mean Absolute % Error): {mape:.2f}%")
 
-                with st.expander("See actual vs predicted"):
-                    backtest_df = pd.DataFrame(
-                        backtest_results, columns=["Date", "Actual Price", "Predicted Price"]
-                    )
-                    st.dataframe(backtest_df)
-
-                    # Download button
-                    csv = backtest_df.to_csv(index=False).encode('utf-8')
-                    st.download_button(
-                        label="📥 Download Backtest CSV",
-                        data=csv,
-                        file_name=f"{coin}_backtest.csv",
-                        mime='text/csv'
-                    )
-
             except Exception as e:
                 st.error(f"❌ Error: {e}")
+
     
-
-
 elif page == "Economic News":
     st.header("🌍 Economic News That Could Affect Crypto")
     try:
