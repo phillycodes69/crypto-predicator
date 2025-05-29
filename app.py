@@ -14,7 +14,7 @@ def backtest_model(filename, test_days=5):
     df["day"] = (df["date"] - df["date"].min()).dt.days
 
     X = df[["day"]].values
-    y = df["prices"].values
+    y = df["price"].values
 
     model = LinearRegression()
     model.fit(X, y)
@@ -22,14 +22,13 @@ def backtest_model(filename, test_days=5):
     backtest_results = []
     mape_errors = []
 
-    for i in range(1, 6):  #last 5 days 
+    for i in range(1, test_days + 1):
         past_df = df.iloc[:-i]
-        future_actual = df.iloc[-1]
-
         if len(past_df) < 2:
             continue
 
-        past_x = past_df[["day"]].values
+        future_actual = df.iloc[-i]
+        past_X = past_df[["day"]].values
         past_y = past_df["price"].values
 
         model.fit(past_X, past_y)
@@ -43,19 +42,20 @@ def backtest_model(filename, test_days=5):
             predicted
         ))
 
-        error_pct = abs((actual - predicted) / actual)
-        mape_errors.append(error_pct)
+        if actual != 0:
+            error_pct = abs((actual - predicted) / actual)
+            mape_errors.append(error_pct)
 
     if not backtest_results or not mape_errors:
         return 0.0, 0.0, []
-    
+
     mae = mean_absolute_error(
-        [r[1] for r in backtest_results],  #actual
-        [r[2] for r in backtest_results]   #predicted
+        [r[1] for r in backtest_results],
+        [r[2] for r in backtest_results]
     )
-   
-    mape = np.mean(mape_errors) * 100  # as a %
+    mape = np.mean(mape_errors) * 100
     return mae, mape, backtest_results
+
 
 
 # Page setup
