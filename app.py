@@ -4,8 +4,11 @@ import pandas as pd
 import numpy as np
 import datetime
 import plotly.graph_objects as go
+import io
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+import time
+from requests.exceptions import RequestException
 
 # Set up Streamlit page configuration
 st.set_page_config(page_title="Crypto Price Predictor", page_icon="📈", layout="wide")
@@ -17,39 +20,14 @@ st.markdown("---")
 st.sidebar.title("🧭 Navigation")
 page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News"])
 
-# Coin selector in sidebar (added Solana and Polkadot)
-coin_names = {
-    "Bitcoin": "bitcoin",
-    "Ethereum": "ethereum",
-    "Dogecoin": "dogecoin",
-    "Cardano": "cardano",
-    "Solana": "solana",        # Added Solana
-    "Polkadot": "polkadot"     # Added Polkadot
-}
-
-# Trending coins: Fetch from CoinGecko API
-def get_trending_coins():
-    url = "https://api.coingecko.com/api/v3/search/trending"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json().get("coins", [])
-    else:
-        return []
-
-# Show the trending coins in the sidebar
-trending_coins = get_trending_coins()
-trending_coin_names = [coin["item"]["name"] for coin in trending_coins]
-selected_trending_coins = st.sidebar.multiselect("Trending Coins", trending_coin_names, default=trending_coin_names[:2])
-
-# Fetch the coin IDs for the selected trending coins
-selected_coins = [coin_names.get(name.lower(), name.lower()) for name in selected_trending_coins]
-
-# Coin selector in sidebar for user selection
+# Coin selector in sidebar
+coin_names = {"Bitcoin": "bitcoin", "Ethereum": "ethereum", "Dogecoin": "dogecoin", "Cardano": "cardano"}
 selected_name = st.sidebar.selectbox("Choose a coin", list(coin_names.keys()))
 coin = coin_names[selected_name]
 
 # News API key
 NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"
+
 
 # Helper function to get economic news
 @st.cache_data(ttl=600)
@@ -65,9 +43,10 @@ def get_economic_news():
         response = requests.get(url, params=params)
         response.raise_for_status()  # Raise an error for bad responses
         return response.json().get("articles", [])
-    except requests.exceptions.RequestException as e:
+    except RequestException as e:
         st.warning(f"⚠️ Could not load news: {e}")
         return []
+
 
 # Helper function to get crypto price data
 @st.cache_data(ttl=600)
@@ -80,9 +59,16 @@ def get_crypto_price(coin_id):
         data = response.json()
         price_data = [{"date": datetime.datetime.fromtimestamp(entry[0] / 1000).strftime("%Y-%m-%d"), "price": entry[1]} for entry in data["prices"]]
         return price_data
-    except requests.exceptions.RequestException as e:
+    except RequestException as e:
         st.error(f"❌ Error fetching data: {e}")
         return []
+
+
+# Helper function to save data to CSV
+def save_data_to_csv(data, filename):
+    df = pd.DataFrame(data)
+    df.to_csv(filename, index=False)
+
 
 # Function to make price predictions using Random Forest model
 def predict_price_from_data(data):
@@ -104,6 +90,7 @@ def predict_price_from_data(data):
         future_predictions.append((i, predicted_price[0]))
 
     return future_predictions
+
 
 # Function to backtest the model performance
 def backtest_model(data, test_days=5):
@@ -139,6 +126,7 @@ def backtest_model(data, test_days=5):
 
     mae = mean_absolute_error([r[1] for r in backtest_results], [r[2] for r in backtest_results])
     return mae, backtest_results
+
 
 # Plot the predictions and actual data
 def plot_prediction(data, predictions):
@@ -182,15 +170,12 @@ def plot_prediction(data, predictions):
 # === Page Views ===
 if page == "Price Prediction":
     st.header("📈 Crypto Price Prediction")
-    
-    # Display predictions for selected coins
-    for coin in selected_coins:
-        st.subheader(f"Predictions for {coin.capitalize()}")
-        with st.spinner(f"🔄 Fetching data and generating prediction for {coin.capitalize()}..."):
+    if st.button("Predict Tomorrow's Price"):
+        with st.spinner("🔄 Fetching data and generating prediction..."):
             try:
                 data = get_crypto_price(coin)
                 if not data:
-                    st.error(f"❌ No data available for {coin.capitalize()} prediction.")
+                    st.error("❌ No data available for prediction.")
                 else:
                     filename = f"{coin}_history.csv"
                     save_data_to_csv(data, filename)
@@ -211,7 +196,7 @@ if page == "Price Prediction":
                             csv = backtest_df.to_csv(index=False).encode('utf-8')
                             st.download_button(
                                 label="Download Backtest Results as CSV", data=csv,
-                                file_name=f"{coin}_backtest_results.csv", mime="text/csv"
+                                file_name="backtest_results.csv", mime="text/csv"
                             )
 
             except Exception as e:
