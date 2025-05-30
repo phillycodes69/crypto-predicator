@@ -8,6 +8,7 @@ import io
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+from vaderSentiment.varderSentiment import SentimentIntesityAnalyzer
 
 # Page setup
 st.set_page_config(
@@ -36,6 +37,15 @@ coin = coin_names[selected_name]
 
 # News API key
 NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"
+
+
+# === Sentiment Analysis ===
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+def analyze_sentiment(text):
+    analyzer = SentimentIntensityAnalyzer()
+    score = analyzer.polarity_scores(text)
+    return score['compound']  # -1 (very negative) to +1 (very positive)
 
 @st.cache_data(ttl=600)
 def get_economic_news():
