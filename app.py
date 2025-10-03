@@ -8,8 +8,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from PIL import Image
 from io import BytesIO
-COINGECKO_API-KEY = 
-st.secrets["api_keys"]["coingecko"]
 
 # Set up the app page
 st.set_page_config(page_title="Crypto Price Predictor", page_icon="📈", layout="wide")
