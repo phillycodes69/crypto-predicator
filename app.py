@@ -66,17 +66,22 @@ def get_economic_news():
 
 @st.cache_data(ttl=600)
 def get_crypto_price(coin_id):
-    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params = {"vs_currency": "usd", "days": "90", "interval": "daily"}
+    url = f"https://api.coincap.io/v2/assets/{coin_id}/history"
+    params = {
+        "interval": "d1",
+        "start": (datetime.datetime.now() - datetime.timedelta(days=90)).isoformat(),
+        "end": datetime.datetime.now().isoformat()
+    }
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
-        data = response.json()
-        return [{"date": datetime.datetime.fromtimestamp(p[0] / 1000).strftime("%Y-%m-%d"), "price": p[1]} for p in data["prices"]]
-    except:
-        st.error(f"❌ Error fetching data for {coin_id}")
+        data = response.json()["data"]
+        return [{"date": d["date"][:10], "price": float(d["priceUsd"])} for d in data]
+    except requests.exceptions.RequestException as e:
+        st.error(f"❌ Error fetching CoinCap data: {e}")
         return []
 
+    
 def save_data_to_csv(data, filename):
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
