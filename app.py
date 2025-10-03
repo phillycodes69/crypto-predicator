@@ -8,6 +8,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from PIL import Image
 from io import BytesIO
+COINGECKO_API-KEY = 
+st.secrets["api_keys"]["coingecko"]
 
 # Set up the app page
 st.set_page_config(page_title="Crypto Price Predictor", page_icon="📈", layout="wide")
@@ -33,7 +35,7 @@ selected_coin = st.sidebar.selectbox("Choose a cryptocurrency", list(coin_option
 coin_id = coin_options[selected_coin]
 
 # 🔑 Add your NewsAPI key here
-NEWS_API_KEY = "your_newsapi_key_here"
+NEWS_API_KEY = "cd069f7a560a4350b78974c71eedbf53"
 
 @st.cache_data(ttl=600)
 def fetch_crypto_data(coin_id, days=90):
