@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error
 from io import BytesIO
 from PIL import Image
@@ -189,21 +189,61 @@ def get_economic_news():
 
 # ---------------- ML + Plot ----------------
 def predict_next_7_days(data):
-    df = pd.DataFrame(data)
+    """
+    Autoregressive forecast with lag/rolling features and recursive 7-day prediction.
+    """
+    df = pd.DataFrame(data).copy()
     if df.empty:
         return []
+
     df["date"] = pd.to_datetime(df["date"])
-    df["day"] = (df["date"] - df["date"].min()).dt.days
-    X = df[["day"]].values
-    y = df["price"].values
-    model = RandomForestRegressor(n_estimators=120, random_state=42)
+    df = df.sort_values("date").reset_index(drop=True)
+    df["price"] = df["price"].astype(float)
+
+    # Lag features
+    for L in [1, 2, 3, 7, 14]:
+        df[f"lag{L}"] = df["price"].shift(L)
+
+    # Rolling means (use only past data)
+    for W in [3, 7, 14]:
+        df[f"roll{W}"] = df["price"].shift(1).rolling(W).mean()
+
+    feature_cols = [c for c in df.columns if c.startswith("lag") or c.startswith("roll")]
+    train = df.dropna(subset=feature_cols + ["price"])
+    if train.empty:
+        return []
+
+    X = train[feature_cols].values
+    y = train["price"].values
+
+    model = GradientBoostingRegressor(random_state=42)
     model.fit(X, y)
-    last_day = int(df["day"].max())
+
+    # Recursive forecast: feed each new prediction back in
+    history = df[["date", "price"]].copy()
     preds = []
+    last_date = history["date"].max()
+
     for i in range(1, 8):
-        preds.append((i, float(model.predict([[last_day + i]])[0])))
+        row = {}
+        for L in [1, 2, 3, 7, 14]:
+            row[f"lag{L}"] = history["price"].iloc[-L] if len(history) >= L else history["price"].iloc[-1]
+        for W in [3, 7, 14]:
+            window = history["price"].iloc[-W:] if len(history) >= W else history["price"]
+            row[f"roll{W}"] = float(window.mean())
+
+        x_next = np.array([row[c] for c in feature_cols]).reshape(1, -1)
+        y_hat = float(model.predict(x_next)[0])
+        preds.append((i, y_hat))
+
+        history = pd.concat(
+            [history, pd.DataFrame([{"date": last_date + pd.Timedelta(days=i), "price": y_hat}])],
+            ignore_index=True
+        )
+
     return preds
 
+    
 def backtest_mae(data, test_days=5):
     df = pd.DataFrame(data)
     if df.empty:
