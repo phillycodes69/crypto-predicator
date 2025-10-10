@@ -319,25 +319,61 @@ if page == "Price Prediction":
 elif page == "Economic News":
     st.header("🌍 Business & Economic News")
     if not NEWS_API_KEY:
-        st.info("Add your NewsAPI key in Streamlit Cloud → Manage app → Settings → Secrets →\n[api_keys]\nnews = \"YOUR_NEWSAPI_KEY\"")
+        st.info("""
+        🔑 Add your NewsAPI key in Streamlit Cloud → **Manage app → Settings → Secrets**
+        ```
+        [api_keys]
+        news = "YOUR_NEWSAPI_KEY"
+        ```
+        """)
     else:
         articles = get_economic_news()
         if not articles:
-            st.info("No articles available right now.")
+            st.info("No recent business or crypto-related news found.")
         else:
+            st.write("### 📰 Latest Headlines")
             for a in articles:
-                title = a.get("title") or "Untitled"
-                url = a.get("url") or "#"
-                src = a.get("source", {}).get("name", "Unknown Source")
-                st.markdown(f"**[{title}]({url})**")
-                img_url = a.get("urlToImage")
-                if img_url:
+                title = a.get("title", "Untitled")
+                url = a.get("url", "#")
+                source = a.get("source", {}).get("name", "Unknown Source")
+                image_url = a.get("urlToImage")
+                published = a.get("publishedAt", None)
+
+                # Format date nicely
+                published_str = ""
+                if published:
                     try:
-                        resp = requests.get(img_url, timeout=10)
-                        img = Image.open(BytesIO(resp.content))
-                        if img.format != "GIF":
-                            st.image(img, use_column_width=True)
-                    except Exception:
+                        dt = datetime.fromisoformat(published.replace("Z", "+00:00"))
+                        hours_ago = (datetime.utcnow() - dt).total_seconds() / 3600
+                        if hours_ago < 24:
+                            published_str = f"{int(hours_ago)} hours ago"
+                        else:
+                            published_str = dt.strftime("%b %d, %Y")
+                    except:
                         pass
-                st.caption(src)
-                st.divider()
+
+                # --- Custom "card" style container ---
+                st.markdown(
+                    f"""
+                    <div style="
+                        background-color:#f9f9f9;
+                        border-radius:12px;
+                        box-shadow:0 2px 6px rgba(0,0,0,0.08);
+                        padding:18px;
+                        margin-bottom:20px;
+                    ">
+                        <h4 style="margin-bottom:4px;">
+                            <a href="{url}" target="_blank" style="text-decoration:none; color:#1a73e8;">{title}</a>
+                        </h4>
+                        <p style="color:#555; font-size:14px; margin-bottom:6px;">{source} • {published_str}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                # Image (if available)
+                if image_url:
+                    st.image(image_url, use_container_width=True)
+                else:
+                    st.image("https://via.placeholder.com/600x300?text=No+Image+Available", use_container_width=True)
+
