@@ -317,7 +317,8 @@ if page == "Price Prediction":
                     st.dataframe(pd.DataFrame(back, columns=["Date", "Actual", "Predicted"]))
 
 elif page == "Economic News":
-    st.header("🌍 Business & Economic News")
+    st.header("🌍 Global Business & Crypto News")
+
     if not NEWS_API_KEY:
         st.info("""
         🔑 Add your NewsAPI key in Streamlit Cloud → **Manage app → Settings → Secrets**
@@ -327,11 +328,38 @@ elif page == "Economic News":
         ```
         """)
     else:
-        articles = get_economic_news()
+        # --- Category Filter ---
+        category = st.selectbox(
+            "🗞️ Select a news category:",
+            ["business", "cryptocurrency", "technology", "finance", "general"]
+        )
+
+        st.caption("Fetching latest articles...")
+
+        # --- Fetch more articles ---
+        @st.cache_data(ttl=600)
+        def get_news(category):
+            url = "https://newsapi.org/v2/top-headlines"
+            params = {
+                "category": category if category != "cryptocurrency" else "business",
+                "language": "en",
+                "pageSize": 15,  # show more articles
+                "apiKey": NEWS_API_KEY
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            return response.json().get("articles", [])
+
+        try:
+            articles = get_news(category)
+        except Exception as e:
+            st.error(f"⚠️ Failed to load news: {e}")
+            articles = []
+
         if not articles:
-            st.info("No recent business or crypto-related news found.")
+            st.info("No recent news articles found. Try another category.")
         else:
-            st.write("### 📰 Latest Headlines")
+            st.markdown("### 📰 Latest Headlines")
             for a in articles:
                 title = a.get("title", "Untitled")
                 url = a.get("url", "#")
@@ -339,7 +367,7 @@ elif page == "Economic News":
                 image_url = a.get("urlToImage")
                 published = a.get("publishedAt", None)
 
-                # Format date nicely
+                # --- Format date & time ---
                 published_str = ""
                 if published:
                     try:
@@ -352,28 +380,37 @@ elif page == "Economic News":
                     except:
                         pass
 
-                # --- Custom "card" style container ---
+                # --- Card Layout ---
                 st.markdown(
                     f"""
                     <div style="
-                        background-color:#f9f9f9;
+                        background-color:#ffffff;
                         border-radius:12px;
-                        box-shadow:0 2px 6px rgba(0,0,0,0.08);
+                        box-shadow:0 2px 8px rgba(0,0,0,0.08);
                         padding:18px;
-                        margin-bottom:20px;
+                        margin-bottom:22px;
+                        border:1px solid #eaeaea;
                     ">
-                        <h4 style="margin-bottom:4px;">
-                            <a href="{url}" target="_blank" style="text-decoration:none; color:#1a73e8;">{title}</a>
+                        <h4 style="margin-bottom:4px; line-height:1.4;">
+                            <a href="{url}" target="_blank" style="text-decoration:none; color:#1a73e8;">
+                                {title}
+                            </a>
                         </h4>
-                        <p style="color:#555; font-size:14px; margin-bottom:6px;">{source} • {published_str}</p>
+                        <p style="color:#666; font-size:14px; margin-bottom:8px;">
+                            {source} • {published_str}
+                        </p>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
 
-                # Image (if available)
+                # --- Article Image ---
                 if image_url:
                     st.image(image_url, use_container_width=True)
                 else:
-                    st.image("https://via.placeholder.com/600x300?text=No+Image+Available", use_container_width=True)
+                    st.image(
+                        "https://via.placeholder.com/600x300?text=No+Image+Available",
+                        use_container_width=True
+                    )
 
+            st.caption("🕒 Updated every 10 minutes from NewsAPI.org")
