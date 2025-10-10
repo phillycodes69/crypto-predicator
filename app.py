@@ -19,7 +19,7 @@ st.divider()
 
 # ---------------- Sidebar ----------------
 st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News"])
+page = st.sidebar.radio("Go to", ["Price Prediction", "Economic News", "Terms & Disclaimer"])
 
 # Stable coin IDs (work across most providers)
 COINS = {
@@ -414,3 +414,33 @@ elif page == "Economic News":
                     )
 
             st.caption("🕒 Updated every 10 minutes from NewsAPI.org")
+
+elif page == "Terms & Disclaimer":
+    st.header("📜 Terms & Conditions / Legal Disclaimer")
+
+    st.markdown("""
+    **Last Updated:** October 2025  
+
+    ---
+    ### 1. No Financial Advice
+    The content and predictions provided on this website are for **informational and educational purposes only**.  
+    We do not provide financial, investment, or trading advice of any kind.  
+    Cryptocurrency markets are highly volatile and unpredictable — **you should always do your own research** and consult a licensed financial advisor before making any investment decisions.
+
+    ### 2. Limitation of Liability
+    By using this website, you acknowledge that **we are not responsible for any financial losses, damages, or decisions** made based on the information or predictions displayed on this site.  
+    All data and forecasts are generated automatically using third-party APIs and machine learning algorithms, which may contain errors or inaccuracies.
+
+    ### 3. Data Sources
+    The data and market information shown on this site are provided by **third-party APIs** such as CoinGecko and NewsAPI.  
+    We make no guarantees regarding the accuracy, timeliness, or completeness of any external data.
+
+    ### 4. Use at Your Own Risk
+    By accessing or using this website, you agree that you do so **entirely at your own risk**.  
+    You understand that past performance does not guarantee future results and that cryptocurrency investments involve substantial risk.
+
+    ### 5. Contact
+    For questions or concerns about these terms, please contact us via our website or email support.
+    """)
+
+    st.success("✅ By continuing to use this site, you acknowledge that you have read and accepted these terms.")
